@@ -140,17 +140,17 @@ class Game:
                 vec_direction = 0
                 match direction:
                     case 0:
-                        if field[0] < 0:
+                        if field[direction] < 0:
                             vec_direction = VEC_LEFT
                         else:
                             vec_direction = VEC_RIGHT
                     case 1:
-                        if field[0] < 0:
+                        if field[direction] < 0:
                             vec_direction = VEC_UP
                         else:
                             vec_direction = VEC_DOWN
                     case 2:
-                        if field[0] < 0:
+                        if field[direction] < 0:
                             vec_direction = VEC_FORWARD
                         else:
                             vec_direction = VEC_BACKWARD
