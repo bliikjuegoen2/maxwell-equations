@@ -2,13 +2,22 @@ from types import NoneType
 import pygame as pg
 from pygame import display
 import numpy as np
+from numpy.typing import *
+from player import Player
+from mathUtits import *
 
 # global variables
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 SCREEN_DIMENSIONS = (SCREEN_WIDTH, SCREEN_HEIGHT)
+TILE_SIZE = 64
+TILE_DIMENSIONS = (TILE_SIZE, TILE_SIZE)
 FPS = 60
+FORWARD     = np.array([0,     -1])
+BACKWARD    = np.array([0,     1])
+LEFT        = np.array([-1,    0])
+RIGHT       = np.array([1,     0])
 
 class Game:
 
@@ -20,12 +29,54 @@ class Game:
 
         self.clock = pg.time.Clock()
 
+        self.physical_set = pg.image.load("tilesets/physical-set.png")
+        self.vector_set = pg.image.load("tilesets/vector-set.png")
+
+        self.player = Player(64*7/FPS, 0.65)
+
     def handle_event(self, event: pg.event.Event) -> None:
-        if event.type == pg.QUIT:
-            self.is_running = False
+        match event.type:
+            case pg.QUIT:
+                self.is_running = False
     
     def process(self) -> None:
-        pass
+        key_pressed = pg.key.get_pressed()
+
+        player_direction = np.zeros(2)
+
+        if key_pressed[pg.K_w]:
+            player_direction += FORWARD
+        if key_pressed[pg.K_s]:
+            player_direction += BACKWARD
+        if key_pressed[pg.K_a]:
+            player_direction += LEFT
+        if key_pressed[pg.K_d]:
+            player_direction += RIGHT
+        
+        player_direction = normalize(player_direction)
+
+        self.player.move(player_direction)
+
+        self.screeen.fill(pg.color.Color(0xFF, 0xFF, 0xFF))
+
+        for i in range(
+            self.world_to_map(self.player.x) - 1
+            , self.world_to_map(self.player.x + SCREEN_WIDTH) + 1
+        ):
+            for j in range(
+                self.world_to_map(self.player.y) - 1
+                , self.world_to_map(self.player.y + SCREEN_HEIGHT) + 1
+            ):
+                self.draw_physical_tile(np.array([i*TILE_SIZE,j*TILE_SIZE]), (i+j) % 2 + 1)
+    
+    def draw_physical_tile(self, position: NDArray, tile_type: int):
+        self.screeen.blit(
+            self.physical_set
+            , position - self.player.position
+            , pg.Rect((tile_type % 64)*TILE_SIZE,int(tile_type / 64)*TILE_SIZE,TILE_SIZE,TILE_SIZE))
+    
+    def world_to_map(self, position: float) -> int:
+        return int(position/TILE_SIZE)
 
     def game_loop(self) -> None:
         while self.is_running:
