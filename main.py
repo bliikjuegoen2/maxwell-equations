@@ -40,6 +40,10 @@ VEC_BACKWARD = 3
 VEC_LEFT = 4
 VEC_RIGHT = 5
 
+# Visual Modes
+MODE_NORMAL = 0
+MODE_ELECTRIC_FIELD = 1
+
 # Scientific Constants
 epsilon0 = 1
 
@@ -79,6 +83,8 @@ class Game:
         
         self.electric_field = np.zeros((WORLD_WIDTH*2 + 1, WORLD_HEIGHT*2 + 1, WORLD_LENGTH*2 + 1, 3))
 
+        self.mode = MODE_NORMAL
+
     def handle_event(self, event: pg.event.Event) -> None:
         match event.type:
             case pg.QUIT:
@@ -111,6 +117,10 @@ class Game:
             self.current_tile_type = TILETYPE_NEGATIVE_CHARGE
         if key_pressed[pg.K_3]:
             self.current_tile_type = TILETYPE_INSULATOR
+        if key_pressed[pg.K_ESCAPE]:
+            self.mode = MODE_NORMAL
+        if key_pressed[pg.K_e]:
+            self.mode = MODE_ELECTRIC_FIELD
 
         
         mouse_pressed = pg.mouse.get_pressed()
@@ -135,42 +145,54 @@ class Game:
                 self.world_to_map(self.player.y) - 1
                 , self.world_to_map(self.player.y + SCREEN_HEIGHT) + 1
             ):
-                field = self.electric_field[self.field_index((i,self.current_layer,j))]
-                direction = max(enumerate(np.abs(field)), key=lambda x: x[1])[0]
-                vec_direction = 0
-                match direction:
-                    case 0:
-                        if field[direction] < 0:
-                            vec_direction = VEC_LEFT
-                        else:
-                            vec_direction = VEC_RIGHT
-                    case 1:
-                        if field[direction] < 0:
-                            vec_direction = VEC_UP
-                        else:
-                            vec_direction = VEC_DOWN
-                    case 2:
-                        if field[direction] < 0:
-                            vec_direction = VEC_FORWARD
-                        else:
-                            vec_direction = VEC_BACKWARD
-                self.draw_vec_tile(np.array([i*TILE_SIZE,j*TILE_SIZE]), vec_direction)
-                # self.draw_physical_tile(
-                #     np.array([i*TILE_SIZE,j*TILE_SIZE])
-                #     , self.physical_map[i,self.current_layer,j]
-                # )
+                if self.mode == MODE_NORMAL:
+                    self.draw_physical_tile(
+                        np.array([i*TILE_SIZE,j*TILE_SIZE])
+                        , self.physical_map[i,self.current_layer,j]
+                    )
+                    continue
+                if self.mode == MODE_ELECTRIC_FIELD:
+                    field = self.electric_field[self.field_index((i,self.current_layer,j))]
+                    direction = max(enumerate(np.abs(field)), key=lambda x: x[1])[0]
+                    size = np.linalg.norm(field)
+                    vec_direction = 0
+                    vec_mag = 0
+                    match direction:
+                        case 0:
+                            if field[direction] < 0:
+                                vec_direction = VEC_LEFT
+                            else:
+                                vec_direction = VEC_RIGHT
+                        case 1:
+                            if field[direction] < 0:
+                                vec_direction = VEC_UP
+                            else:
+                                vec_direction = VEC_DOWN
+                        case 2:
+                            if field[direction] < 0:
+                                vec_direction = VEC_FORWARD
+                            else:
+                                vec_direction = VEC_BACKWARD
+                    
+                    if size > 1/50:
+                        vec_mag = 2
+                    elif size > 1/1000:
+                        vec_mag = 1
+
+                    self.draw_vec_tile(np.array([i*TILE_SIZE,j*TILE_SIZE]), vec_direction + vec_mag*6)
+                    continue
     
     def draw_physical_tile(self, position: NDArray, tile_type: int):
-        self.draw_tile(self.physical_set, position, tile_type)
+        self.draw_tile(self.physical_set, position, tile_type, 64)
     
     def draw_vec_tile(self, position: NDArray, tile_type: int):
-        self.draw_tile(self.vector_set, position, tile_type)
+        self.draw_tile(self.vector_set, position, tile_type, 6)
     
-    def draw_tile(self, tile_set, position: NDArray, tile_type: int):
+    def draw_tile(self, tile_set, position: NDArray, tile_type: int, set_width: int):
         self.screeen.blit(
             tile_set
             , position - self.player.position
-            , pg.Rect((tile_type % 64)*TILE_SIZE,int(tile_type / 64)*TILE_SIZE,TILE_SIZE,TILE_SIZE))
+            , pg.Rect((tile_type % set_width)*TILE_SIZE,int(tile_type / set_width)*TILE_SIZE,TILE_SIZE,TILE_SIZE))
     
     def world_to_map(self, position: float) -> int:
         return int(position/TILE_SIZE)
@@ -217,7 +239,7 @@ class Game:
                 # no null check should be necessary
                 # everything should iterate in the boundary of the arrays
                 x,y,z = self.add_index(self.field_index((i,j,k)), self.from_kernel_index((u,v,w)))
-                delta_field[x,y,z] += divergence_delta*self.kernel[u,v,w]
+                delta_field[x,y,z] += divergence_delta*self.kernel[u,v,w]*26
         
         self.electric_field += delta_field
 
@@ -236,8 +258,9 @@ class Game:
     def process_field(self):
         while self.is_running:
             self.gauss_law_electric()
+            print("done!")
 
-    def game_loop(self) -> None:
+    def game_loop(self):
         update_field = threading.Thread(target=game.process_field)
         update_field.start()
         while self.is_running:
