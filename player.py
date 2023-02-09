@@ -18,6 +18,14 @@ class Player:
     @property
     def y(self) -> float:
         return self.position[1]
+    
+    @x.setter
+    def set_x(self, value: float):
+        self.position[0] = value
+    
+    @y.setter
+    def set_y(self, value: float):
+        self.position[1] = value
 
     def pos(self) -> Tuple[int,int]:
         return tuple(self.position)
