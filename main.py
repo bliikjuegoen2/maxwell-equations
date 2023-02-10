@@ -69,15 +69,12 @@ class Game:
             fields.WORLD_WIDTH*TILE_SIZE/2
             , fields.WORLD_LENGTH*TILE_SIZE/2
         ])
-
-        self.physical_map = np.zeros(WORLD_DIMENSIONS)
-
-        for i,j,k in np.ndindex(WORLD_DIMENSIONS):
-            self.physical_map[i,j,k] = fields.TILETYPE_INSULATOR
         
         self.electric_field = np.zeros((fields.WORLD_WIDTH*2 + 1, fields.WORLD_HEIGHT*2 + 1, fields.WORLD_LENGTH*2 + 1, 3))
 
         self.mode = MODE_NORMAL
+
+        fields.init_fields()
 
     def handle_event(self, event: pg.event.Event) -> None:
         match event.type:
@@ -123,7 +120,7 @@ class Game:
             mouse_x, mouse_y = pg.mouse.get_pos()
             i = self.world_to_map(self.player.x + mouse_x)
             j = self.world_to_map(self.player.y + mouse_y)
-            self.physical_map[i,self.current_layer,j] = self.current_tile_type
+            fields.set_tile_physical_map(i,self.current_layer,j,self.current_tile_type)
         
         player_direction = normalize(player_direction)
 
@@ -142,7 +139,7 @@ class Game:
                 if self.mode == MODE_NORMAL:
                     self.draw_physical_tile(
                         np.array([i*TILE_SIZE,j*TILE_SIZE])
-                        , self.physical_map[i,self.current_layer,j]
+                        , fields.get_tile_physical_map(i,self.current_layer,j)
                     )
                     continue
                 if self.mode == MODE_ELECTRIC_FIELD:
@@ -217,7 +214,7 @@ class Game:
         delta_field = np.zeros((fields.WORLD_WIDTH*2 + 1, fields.WORLD_HEIGHT*2 + 1, fields.WORLD_LENGTH*2 + 1, 3))
 
         for i,j,k in np.ndindex(WORLD_DIMENSIONS):
-            charge = self.get_charge(self.physical_map[i,j,k])
+            charge = self.get_charge(fields.get_tile_physical_map(i,j,k))
             real_divergence = charge/epsilon0
             current_divergence = 0
 
@@ -265,6 +262,9 @@ class Game:
 
             display.update()
             self.clock.tick(FPS)
+    
+    def __del__(self):
+        fields.destr_fields()
 
 pg.init()
 
