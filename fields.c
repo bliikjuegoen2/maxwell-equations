@@ -1,6 +1,7 @@
 #include "fields.h" 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #define FOR3D(I, WIDTH, J, HEIGHT, K, LENGTH, BODY) \
     for (int I = 0; I < WIDTH; I++) { \
@@ -71,8 +72,20 @@ Vector *get_node_electric_field(int i, int j, int k) {
     return get_point_electric_field(field_dimensions(i), field_dimensions(j), field_dimensions(k));
 }
 
+static int _is_running;
+
+int is_running() {
+    return 1;
+}
+
+void quit() {
+    _is_running = 0;
+}
+
 // run at the start of the program
 void init_fields() {
+
+    _is_running = 1;
 
     physical_map = malloc(sizeof(int)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
 

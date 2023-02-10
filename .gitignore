@@ -3,3 +3,11 @@ fields_wrap.c
 fields.py
 *.o
 *.so
+*.exe
+swigwin/*
+*.obj
+*.exp
+*.lib
+*.dll
+build/lib.win-amd64-cpython-311/*
+*pyd

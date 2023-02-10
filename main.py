@@ -44,7 +44,6 @@ epsilon0 = 1
 class Game:
 
     def __init__(self) -> None:
-        self.is_running = True
 
         self.screeen = display.set_mode(SCREEN_DIMENSIONS)
         display.set_caption("Maxwell's Equations")
@@ -77,7 +76,7 @@ class Game:
     def handle_event(self, event: pg.event.Event) -> None:
         match event.type:
             case pg.QUIT:
-                self.is_running = False
+                fields.quit()
             case pg.KEYDOWN:
                 match event.key:
                     case pg.K_SPACE:
@@ -248,14 +247,14 @@ class Game:
     #         self.electric_field[self.field_index((i,j,k))] = average
 
     def process_field(self):
-        while self.is_running:
+        while fields.is_running():
             # self.gauss_law_electric()
             print("done!")
 
     def game_loop(self):
         update_field = threading.Thread(target=game.process_field)
         update_field.start()
-        while self.is_running:
+        while fields.is_running():
             for event in pg.event.get():
                 self.handle_event(event)
             
