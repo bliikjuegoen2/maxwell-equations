@@ -1,0 +1,6 @@
+#ifndef MAXWELL_EQUARIONS_FIELDS_H
+#define MAXWELL_EQUARIONS_FIELDS_H
+
+extern void test();
+
+#endif // !MAXWELL_EQUARIONS_FIELDS_H

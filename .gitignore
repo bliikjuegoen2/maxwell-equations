@@ -1,1 +1,5 @@
 __pycache__/*
+fields_wrap.c
+fields.py
+*.o
+*.so

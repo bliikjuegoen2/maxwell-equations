@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from types import NoneType
 from typing import Tuple
 import pygame as pg
@@ -8,6 +9,7 @@ from numpy import dot,cross
 from player import Player
 from mathUtits import *
 import threading
+import fields
 
 # global variables
 
@@ -46,6 +48,8 @@ MODE_ELECTRIC_FIELD = 1
 
 # Scientific Constants
 epsilon0 = 1
+
+fields.test()
 
 class Game:
 

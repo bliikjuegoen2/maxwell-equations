@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import numpy as np
 from numpy.typing import *
 from numpy.linalg import *
