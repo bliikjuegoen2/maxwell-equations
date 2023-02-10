@@ -12,14 +12,20 @@ extern const int TILETYPE_POSITIVE_CHARGE;
 extern const int TILETYPE_NEGATIVE_CHARGE;
 extern const int TILETYPE_INSULATOR;
 
-typedef struct Vector {
-    int x;
-    int y;
-    int z;
+typedef union Vector {
+    struct {
+        int x;
+        int y;
+        int z;
+    };
+    int array[3];
 } Vector;
 
 extern int get_x(Vector *vec);
 extern int get_y(Vector *vec);
 extern int get_z(Vector *vec);
+
+
+extern int get_y(Vector *vec);
 
 #endif // !MAXWELL_EQUARIONS_FIELDS_H

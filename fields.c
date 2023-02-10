@@ -20,9 +20,9 @@ int get_x(Vector *vec) {
 }
 
 int get_y(Vector *vec) {
-    return vec->x;
+    return vec->y;
 }
 
 int get_z(Vector *vec) {
-    return vec->x;
+    return vec->z;
 }
