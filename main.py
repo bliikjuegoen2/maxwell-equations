@@ -18,21 +18,12 @@ SCREEN_HEIGHT = 600
 SCREEN_DIMENSIONS = (SCREEN_WIDTH, SCREEN_HEIGHT)
 TILE_SIZE = 64
 TILE_DIMENSIONS = (TILE_SIZE, TILE_SIZE)
-WORLD_WIDTH = 35
-WORLD_HEIGHT = 15
-WORLD_LENGTH = 35
-WORLD_DIMENSIONS = (WORLD_WIDTH, WORLD_HEIGHT, WORLD_LENGTH)
+WORLD_DIMENSIONS = (fields.WORLD_WIDTH, fields.WORLD_HEIGHT, fields.WORLD_LENGTH)
 FPS = 60
 FORWARD     = np.array([0,     -1])
 BACKWARD    = np.array([0,     1])
 LEFT        = np.array([-1,    0])
 RIGHT       = np.array([1,     0])
-
-# Tile Types
-TILETYPE_WIRE = 0
-TILETYPE_POSITIVE_CHARGE = 1
-TILETYPE_NEGATIVE_CHARGE = 2
-TILETYPE_INSULATOR = 3
 
 # Vector tiles
 VEC_UP = 1
@@ -49,7 +40,6 @@ MODE_ELECTRIC_FIELD = 1
 # Scientific Constants
 epsilon0 = 1
 
-fields.test()
 
 class Game:
 
@@ -64,9 +54,9 @@ class Game:
         self.physical_set = pg.image.load("tilesets/physical-set.png")
         self.vector_set = pg.image.load("tilesets/vector-set.png")
 
-        self.current_tile_type = TILETYPE_WIRE
+        self.current_tile_type = fields.TILETYPE_WIRE
 
-        self.current_layer = int(WORLD_HEIGHT/2)
+        self.current_layer = int(fields.WORLD_HEIGHT/2)
 
         self.kernel = np.zeros((3,3,3,3))
 
@@ -76,16 +66,16 @@ class Game:
         self.player = Player(64*7/FPS, 0.65)
 
         self.player.position = np.array([
-            WORLD_WIDTH*TILE_SIZE/2
-            , WORLD_LENGTH*TILE_SIZE/2
+            fields.WORLD_WIDTH*TILE_SIZE/2
+            , fields.WORLD_LENGTH*TILE_SIZE/2
         ])
 
         self.physical_map = np.zeros(WORLD_DIMENSIONS)
 
         for i,j,k in np.ndindex(WORLD_DIMENSIONS):
-            self.physical_map[i,j,k] = TILETYPE_INSULATOR
+            self.physical_map[i,j,k] = fields.TILETYPE_INSULATOR
         
-        self.electric_field = np.zeros((WORLD_WIDTH*2 + 1, WORLD_HEIGHT*2 + 1, WORLD_LENGTH*2 + 1, 3))
+        self.electric_field = np.zeros((fields.WORLD_WIDTH*2 + 1, fields.WORLD_HEIGHT*2 + 1, fields.WORLD_LENGTH*2 + 1, 3))
 
         self.mode = MODE_NORMAL
 
@@ -114,13 +104,13 @@ class Game:
         if key_pressed[pg.K_d]:
             player_direction += RIGHT
         if key_pressed[pg.K_0]:
-            self.current_tile_type = TILETYPE_WIRE
+            self.current_tile_type = fields.TILETYPE_WIRE
         if key_pressed[pg.K_1]:
-            self.current_tile_type = TILETYPE_POSITIVE_CHARGE
+            self.current_tile_type = fields.TILETYPE_POSITIVE_CHARGE
         if key_pressed[pg.K_2]:
-            self.current_tile_type = TILETYPE_NEGATIVE_CHARGE
+            self.current_tile_type = fields.TILETYPE_NEGATIVE_CHARGE
         if key_pressed[pg.K_3]:
-            self.current_tile_type = TILETYPE_INSULATOR
+            self.current_tile_type = fields.TILETYPE_INSULATOR
         if key_pressed[pg.K_ESCAPE]:
             self.mode = MODE_NORMAL
         if key_pressed[pg.K_e]:
@@ -202,9 +192,9 @@ class Game:
         return int(position/TILE_SIZE)
     
     def get_charge(self, tile_type: int) -> float:
-            if tile_type == TILETYPE_POSITIVE_CHARGE:
+            if tile_type == fields.TILETYPE_POSITIVE_CHARGE:
                 return 1
-            if tile_type == TILETYPE_NEGATIVE_CHARGE:
+            if tile_type == fields.TILETYPE_NEGATIVE_CHARGE:
                 return -1
             return 0
     
@@ -224,7 +214,7 @@ class Game:
     
     
     def gauss_law_electric(self):
-        delta_field = np.zeros((WORLD_WIDTH*2 + 1, WORLD_HEIGHT*2 + 1, WORLD_LENGTH*2 + 1, 3))
+        delta_field = np.zeros((fields.WORLD_WIDTH*2 + 1, fields.WORLD_HEIGHT*2 + 1, fields.WORLD_LENGTH*2 + 1, 3))
 
         for i,j,k in np.ndindex(WORLD_DIMENSIONS):
             charge = self.get_charge(self.physical_map[i,j,k])
