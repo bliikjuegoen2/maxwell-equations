@@ -15,20 +15,24 @@ extern const int TILETYPE_INSULATOR;
 // vectors
 typedef union Vector {
     struct {
-        int x;
-        int y;
-        int z;
+        float x;
+        float y;
+        float z;
     };
-    int array[3];
+    float array[3];
 } Vector;
 
-extern int get_x(Vector *vec);
-extern int get_y(Vector *vec);
-extern int get_z(Vector *vec);
+extern float get_x(Vector *vec);
+extern float get_y(Vector *vec);
+extern float get_z(Vector *vec);
 
 // physical map
 extern int get_tile_physical_map(int i, int j, int k);
 extern void set_tile_physical_map(int i, int j, int k, int value);
+
+// elctric field
+extern Vector *get_point_electric_field(int i, int j, int k);
+extern Vector *get_node_electric_field(int i, int j, int k);
 
 // constructors and destructors
 extern void init_fields();

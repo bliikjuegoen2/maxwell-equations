@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from types import NoneType
-from typing import Tuple
+from typing import List, Tuple
 import pygame as pg
 from pygame import display
 import numpy as np
@@ -69,8 +69,6 @@ class Game:
             fields.WORLD_WIDTH*TILE_SIZE/2
             , fields.WORLD_LENGTH*TILE_SIZE/2
         ])
-        
-        self.electric_field = np.zeros((fields.WORLD_WIDTH*2 + 1, fields.WORLD_HEIGHT*2 + 1, fields.WORLD_LENGTH*2 + 1, 3))
 
         self.mode = MODE_NORMAL
 
@@ -143,7 +141,7 @@ class Game:
                     )
                     continue
                 if self.mode == MODE_ELECTRIC_FIELD:
-                    field = self.electric_field[self.field_index((i,self.current_layer,j))]
+                    field = self.as_list(fields.get_node_electric_field(i,self.current_layer,j))
                     direction = max(enumerate(np.abs(field)), key=lambda x: x[1])[0]
                     size = np.linalg.norm(field)
                     vec_direction = 0
@@ -209,46 +207,49 @@ class Game:
 
         return (xi+xj, yi+yj, zi+zj)
     
+    def as_list(self, field) -> List:
+        return [fields.get_x(field), fields.get_y(field), fields.get_z(field)]
     
-    def gauss_law_electric(self):
-        delta_field = np.zeros((fields.WORLD_WIDTH*2 + 1, fields.WORLD_HEIGHT*2 + 1, fields.WORLD_LENGTH*2 + 1, 3))
+    
+    # def gauss_law_electric(self):
+    #     delta_field = np.zeros((fields.WORLD_WIDTH*2 + 1, fields.WORLD_HEIGHT*2 + 1, fields.WORLD_LENGTH*2 + 1, 3))
 
-        for i,j,k in np.ndindex(WORLD_DIMENSIONS):
-            charge = self.get_charge(fields.get_tile_physical_map(i,j,k))
-            real_divergence = charge/epsilon0
-            current_divergence = 0
+    #     for i,j,k in np.ndindex(WORLD_DIMENSIONS):
+    #         charge = self.get_charge(fields.get_tile_physical_map(i,j,k))
+    #         real_divergence = charge/epsilon0
+    #         current_divergence = 0
 
-            for u,v,w in np.ndindex((3,3,3)):
-                # no null check should be necessary
-                # everything should iterate in the boundary of the arrays
-                x,y,z = self.add_index(self.field_index((i,j,k)), self.from_kernel_index((u,v,w)))
-                current_divergence += dot(self.kernel[u,v,w], self.electric_field[x,y,z])
+    #         for u,v,w in np.ndindex((3,3,3)):
+    #             # no null check should be necessary
+    #             # everything should iterate in the boundary of the arrays
+    #             x,y,z = self.add_index(self.field_index((i,j,k)), self.from_kernel_index((u,v,w)))
+    #             current_divergence += dot(self.kernel[u,v,w], self.electric_field[x,y,z])
             
-            divergence_delta = real_divergence - current_divergence
+    #         divergence_delta = real_divergence - current_divergence
 
-            for u,v,w in np.ndindex((3,3,3)):
-                # no null check should be necessary
-                # everything should iterate in the boundary of the arrays
-                x,y,z = self.add_index(self.field_index((i,j,k)), self.from_kernel_index((u,v,w)))
-                delta_field[x,y,z] += divergence_delta*self.kernel[u,v,w]*26
+    #         for u,v,w in np.ndindex((3,3,3)):
+    #             # no null check should be necessary
+    #             # everything should iterate in the boundary of the arrays
+    #             x,y,z = self.add_index(self.field_index((i,j,k)), self.from_kernel_index((u,v,w)))
+    #             delta_field[x,y,z] += divergence_delta*self.kernel[u,v,w]*26
         
-        self.electric_field += delta_field
+    #     self.electric_field += delta_field
 
-        for i,j,k in np.ndindex(WORLD_DIMENSIONS):
-            average = np.zeros(3)
-            for u,v,w in np.ndindex((3,3,3)):
-                if u == 0 and v == 0 and w == 0:
-                    continue
-                x,y,z = self.add_index(self.field_index((i,j,k)), self.from_kernel_index((u,v,w)))
-                average += self.electric_field[x,y,z]
+    #     for i,j,k in np.ndindex(WORLD_DIMENSIONS):
+    #         average = np.zeros(3)
+    #         for u,v,w in np.ndindex((3,3,3)):
+    #             if u == 0 and v == 0 and w == 0:
+    #                 continue
+    #             x,y,z = self.add_index(self.field_index((i,j,k)), self.from_kernel_index((u,v,w)))
+    #             average += self.electric_field[x,y,z]
             
-            average /= 26
+    #         average /= 26
 
-            self.electric_field[self.field_index((i,j,k))] = average
+    #         self.electric_field[self.field_index((i,j,k))] = average
 
     def process_field(self):
         while self.is_running:
-            self.gauss_law_electric()
+            # self.gauss_law_electric()
             print("done!")
 
     def game_loop(self):

@@ -26,20 +26,24 @@ const int TILETYPE_INSULATOR = 3;
 
 
 // getters for vector struct
-int get_x(Vector *vec) {
+float get_x(Vector *vec) {
     return vec->x;
 }
 
-int get_y(Vector *vec) {
+float get_y(Vector *vec) {
     return vec->y;
 }
 
-int get_z(Vector *vec) {
+float get_z(Vector *vec) {
     return vec->z;
 }
 
+int field_dimensions(int dim) {
+    return dim*2 + 1;
+} 
+
 // define globals
-int *physical_map;
+static int *physical_map;
 
 int *physical_map_tile(int i, int j, int k) {
     return TILE_AT(physical_map, i, WORLD_WIDTH, j, WORLD_HEIGHT, k, WORLD_LENGTH, 1);
@@ -53,18 +57,46 @@ void set_tile_physical_map(int i, int j, int k, int value) {
     *physical_map_tile(i,j,k) = value;
 }
 
+static float *electric_field;
+
+float *electric_field_point(int i, int j, int k) {
+    return TILE_AT(electric_field, i, field_dimensions(WORLD_WIDTH), j, field_dimensions(WORLD_HEIGHT), k, field_dimensions(WORLD_LENGTH), 3);
+}
+
+Vector *get_point_electric_field(int i, int j, int k) {
+    return (Vector *)electric_field_point(i,j,k);
+}
+
+Vector *get_node_electric_field(int i, int j, int k) {
+    return get_point_electric_field(field_dimensions(i), field_dimensions(j), field_dimensions(k));
+}
+
 // run at the start of the program
 void init_fields() {
 
     physical_map = malloc(sizeof(int)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
 
     FOR3D(i, WORLD_WIDTH, j, WORLD_HEIGHT, k, WORLD_LENGTH,
-        physical_map[i*WORLD_HEIGHT*WORLD_LENGTH + j*WORLD_LENGTH + k] = TILETYPE_INSULATOR;
+        set_tile_physical_map(i, j, k, TILETYPE_INSULATOR);
     )
+
+    electric_field = malloc(sizeof(float)*field_dimensions(WORLD_WIDTH)*field_dimensions(WORLD_HEIGHT)*field_dimensions(WORLD_LENGTH)*3);
+
+    Vector *point = NULL;
+
+    FOR3D(i, field_dimensions(WORLD_WIDTH), j, field_dimensions(WORLD_HEIGHT), k, field_dimensions(WORLD_LENGTH),
+        point = get_point_electric_field(i,j,k);
+        point->x = 0;
+        point->y = 0;
+        point->z = 0;
+    )
+
+    point = NULL;
 }
 
 // destructor
 // shouldn't matter because the globals are expected to last through the life time of the program
 void destr_fields() {
     free(physical_map);
+    free(electric_field);
 }
