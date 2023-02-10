@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
 
 #define FOR3D(I, WIDTH, J, HEIGHT, K, LENGTH, BODY) \
     for (int I = 0; I < WIDTH; I++) { \
@@ -39,6 +40,33 @@ float get_z(Vector *vec) {
     return vec->z;
 }
 
+float dot(Vector *a, Vector *b) {
+    return a->x * b->x + a->y * b->y + a->z * b->z;
+}
+
+Vector scalarMul(float c, Vector *v) {
+    Vector r;
+    r.x = c*v->x;
+    r.y = c*v->y;
+    r.z = c*v->z;
+    return r;
+}
+
+Vector normalize(Vector *v) {
+    float magnitude_v = magnitude(v);
+
+    // test if zero vector
+    if (magnitude_v == 0) {
+        return *v;
+    }
+
+    return scalarMul(1/magnitude_v, v);
+}
+
+float magnitude(Vector *x) {
+    return sqrt(dot(x,x));
+}
+
 int field_dimensions(int dim) {
     return dim*2 + 1;
 } 
@@ -58,14 +86,10 @@ void set_tile_physical_map(int i, int j, int k, int value) {
     *physical_map_tile(i,j,k) = value;
 }
 
-static float *electric_field;
-
-float *electric_field_point(int i, int j, int k) {
-    return TILE_AT(electric_field, i, field_dimensions(WORLD_WIDTH), j, field_dimensions(WORLD_HEIGHT), k, field_dimensions(WORLD_LENGTH), 3);
-}
+static Vector *electric_field;
 
 Vector *get_point_electric_field(int i, int j, int k) {
-    return (Vector *)electric_field_point(i,j,k);
+    return TILE_AT(electric_field, i, field_dimensions(WORLD_WIDTH), j, field_dimensions(WORLD_HEIGHT), k, field_dimensions(WORLD_LENGTH), 1);
 }
 
 Vector *get_node_electric_field(int i, int j, int k) {
@@ -75,11 +99,17 @@ Vector *get_node_electric_field(int i, int j, int k) {
 static int _is_running;
 
 int is_running() {
-    return 1;
+    return _is_running;
 }
 
 void quit() {
     _is_running = 0;
+}
+
+static Vector kernel[3*3*3];
+
+Vector *kernel_at(int i, int j, int k) {
+    return TILE_AT(kernel, i, 3, j, 3, k, 3, 1);
 }
 
 // run at the start of the program
@@ -93,7 +123,7 @@ void init_fields() {
         set_tile_physical_map(i, j, k, TILETYPE_INSULATOR);
     )
 
-    electric_field = malloc(sizeof(float)*field_dimensions(WORLD_WIDTH)*field_dimensions(WORLD_HEIGHT)*field_dimensions(WORLD_LENGTH)*3);
+    electric_field = malloc(sizeof(Vector)*field_dimensions(WORLD_WIDTH)*field_dimensions(WORLD_HEIGHT)*field_dimensions(WORLD_LENGTH));
 
     Vector *point = NULL;
 
@@ -105,6 +135,16 @@ void init_fields() {
     )
 
     point = NULL;
+
+    FOR3D(i, 3, j, 3, k, 3, 
+        point = kernel_at(i, j, k);
+        point->x = i - 1;
+        point->y = j - 1;
+        point->z = k - 1;
+        Vector normalized_point = normalize(point);
+        *point = scalarMul(1.0/26.0, &normalized_point);
+    )
+    printf("done initializing\n");
 }
 
 // destructor

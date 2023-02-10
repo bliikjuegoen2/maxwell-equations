@@ -57,11 +57,6 @@ class Game:
 
         self.current_layer = int(fields.WORLD_HEIGHT/2)
 
-        self.kernel = np.zeros((3,3,3,3))
-
-        for i,j,k in np.ndindex((3,3,3)):
-            self.kernel[i,j,k] = normalize(np.array([i - 1,j - 1,k - 1]))/26
-
         self.player = Player(64*7/FPS, 0.65)
 
         self.player.position = np.array([
@@ -196,10 +191,6 @@ class Game:
         x,y,z = i
         return x*2+1,y*2+1,z*2+1
     
-    def from_kernel_index(self, i: Tuple[int,int,int]) -> Tuple[int,int,int]:
-        x,y,z = i
-        return x-1,y-1,z-1
-    
     def add_index(self, i: Tuple[int,int,int],j: Tuple[int,int,int]) -> Tuple[int,int,int]:
         xi,yi,zi = i
         xj,yj,zj = j
@@ -246,14 +237,7 @@ class Game:
 
     #         self.electric_field[self.field_index((i,j,k))] = average
 
-    def process_field(self):
-        while fields.is_running():
-            # self.gauss_law_electric()
-            print("done!")
-
     def game_loop(self):
-        update_field = threading.Thread(target=game.process_field)
-        update_field.start()
         while fields.is_running():
             for event in pg.event.get():
                 self.handle_event(event)
