@@ -8,7 +8,6 @@ from numpy.typing import *
 from numpy import dot,cross
 from player import Player
 from mathUtits import *
-import threading
 import fields
 
 # global variables
@@ -113,6 +112,7 @@ class Game:
             i = self.world_to_map(self.player.x + mouse_x)
             j = self.world_to_map(self.player.y + mouse_y)
             fields.set_tile_physical_map(i,self.current_layer,j,self.current_tile_type)
+            print(f"pos: ${(i,self.current_layer,j)}")
         
         player_direction = normalize(player_direction)
 
@@ -159,11 +159,13 @@ class Game:
                     
                     if size > 1/50:
                         vec_mag = 2
-                    elif size > 1/1000:
+                    elif size > 1/2001:
                         vec_mag = 1
 
                     self.draw_vec_tile(np.array([i*TILE_SIZE,j*TILE_SIZE]), vec_direction + vec_mag*6)
                     continue
+        
+        fields.guass_law_electric()
     
     def draw_physical_tile(self, position: NDArray, tile_type: int):
         self.draw_tile(self.physical_set, position, tile_type, 64)
@@ -180,13 +182,6 @@ class Game:
     def world_to_map(self, position: float) -> int:
         return int(position/TILE_SIZE)
     
-    def get_charge(self, tile_type: int) -> float:
-            if tile_type == fields.TILETYPE_POSITIVE_CHARGE:
-                return 1
-            if tile_type == fields.TILETYPE_NEGATIVE_CHARGE:
-                return -1
-            return 0
-    
     def field_index(self, i: Tuple[int,int,int]) -> Tuple[int,int,int]:
         x,y,z = i
         return x*2+1,y*2+1,z*2+1
@@ -199,43 +194,6 @@ class Game:
     
     def as_list(self, field) -> List:
         return [fields.get_x(field), fields.get_y(field), fields.get_z(field)]
-    
-    
-    # def gauss_law_electric(self):
-    #     delta_field = np.zeros((fields.WORLD_WIDTH*2 + 1, fields.WORLD_HEIGHT*2 + 1, fields.WORLD_LENGTH*2 + 1, 3))
-
-    #     for i,j,k in np.ndindex(WORLD_DIMENSIONS):
-    #         charge = self.get_charge(fields.get_tile_physical_map(i,j,k))
-    #         real_divergence = charge/epsilon0
-    #         current_divergence = 0
-
-    #         for u,v,w in np.ndindex((3,3,3)):
-    #             # no null check should be necessary
-    #             # everything should iterate in the boundary of the arrays
-    #             x,y,z = self.add_index(self.field_index((i,j,k)), self.from_kernel_index((u,v,w)))
-    #             current_divergence += dot(self.kernel[u,v,w], self.electric_field[x,y,z])
-            
-    #         divergence_delta = real_divergence - current_divergence
-
-    #         for u,v,w in np.ndindex((3,3,3)):
-    #             # no null check should be necessary
-    #             # everything should iterate in the boundary of the arrays
-    #             x,y,z = self.add_index(self.field_index((i,j,k)), self.from_kernel_index((u,v,w)))
-    #             delta_field[x,y,z] += divergence_delta*self.kernel[u,v,w]*26
-        
-    #     self.electric_field += delta_field
-
-    #     for i,j,k in np.ndindex(WORLD_DIMENSIONS):
-    #         average = np.zeros(3)
-    #         for u,v,w in np.ndindex((3,3,3)):
-    #             if u == 0 and v == 0 and w == 0:
-    #                 continue
-    #             x,y,z = self.add_index(self.field_index((i,j,k)), self.from_kernel_index((u,v,w)))
-    #             average += self.electric_field[x,y,z]
-            
-    #         average /= 26
-
-    #         self.electric_field[self.field_index((i,j,k))] = average
 
     def game_loop(self):
         while fields.is_running():
