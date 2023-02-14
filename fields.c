@@ -269,6 +269,4 @@ void guass_law_electric() {
 
         *get_node_electric_field(i,j,k) = average;
     )
-
-    printf("gauss\n");
 }
