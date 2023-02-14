@@ -5,6 +5,8 @@
 #include <math.h>
 #include <pthread.h>
 
+Vector *kernel_at(int i, int j, int k);
+
 #define FOR3D(I, WIDTH, J, HEIGHT, K, LENGTH, BODY) \
     for (int I = 0; I < WIDTH; I++) { \
         for (int J = 0; J < HEIGHT; J++) { \
@@ -36,6 +38,12 @@ const int TILETYPE_WIRE = 0;
 const int TILETYPE_POSITIVE_CHARGE = 1;
 const int TILETYPE_NEGATIVE_CHARGE = 2;
 const int TILETYPE_INSULATOR = 3;
+
+// properties of wire
+const double MOVABLE_PARTICLE_DENSITY = 10;
+const double MOVABLE_PARTICLE_CHARGE = 0.01;
+const double MOVABLE_PARTICLE_MASS = 1;
+const double WIRE_RESISTANCE = 0.001;
 
 // physical constants
 const double EPSILON_0 = 1.0;
@@ -155,35 +163,14 @@ Vector *get_node_electric_field(int i, int j, int k) {
     return get_node_field(electric_field, i, j, k);
 }
 
-void clear_delta_field() {
+static Vector *current_field;
 
+void clear_field(Vector *field) {
     Vector *point = NULL;
 
     LOOP_FIELD(i,j,k,
-        point = get_point_field(delta_field, i, j, k);
+        point = get_point_field(field, i, j, k);
         *point = zero_vector();
-    )
-}
-
-void update_field(Vector *field) {
-    LOOP_FIELD(i,j,k,
-        Vector *point = get_point_field(field,i,j,k);
-        *point = vec_add(point, get_point_field(delta_field,i,j,k));
-    )
-
-    LOOP_WORLD(i,j,k,
-        Vector average = zero_vector();
-
-        LOOP_KERNEL(u,v,w,
-            if(u == 0 && v == 0 && w == 0) {
-                continue;
-            }
-            average = vec_add(&average, get_field_convolve(field,i,j,k,u,v,w));
-        )
-
-        average = scalar_mul(1.0/26.0, &average);
-
-        *get_point_field(field,i,j,k) = average;
     )
 }
 
@@ -220,6 +207,33 @@ Vector *kernel_at(int i, int j, int k) {
 
 static Vector *delta_field;
 
+
+void clear_delta_field() {
+    clear_field(delta_field);
+}
+
+void update_field(Vector *field) {
+    LOOP_FIELD(i,j,k,
+        Vector *point = get_point_field(field,i,j,k);
+        *point = vec_add(point, get_point_field(delta_field,i,j,k));
+    )
+
+    LOOP_WORLD(i,j,k,
+        Vector average = zero_vector();
+
+        LOOP_KERNEL(u,v,w,
+            if(u == 0 && v == 0 && w == 0) {
+                continue;
+            }
+            average = vec_add(&average, get_field_convolve(field,i,j,k,u,v,w));
+        )
+
+        average = scalar_mul(1.0/26.0, &average);
+
+        *get_point_field(field,i,j,k) = average;
+    )
+}
+
 pthread_t process_field_thread;
 
 // run at the start of the program
@@ -235,14 +249,13 @@ void init_fields() {
 
     electric_field = alloc_vec_field();
 
+    clear_field(electric_field);
+
+    current_field = alloc_vec_field();
+
+    clear_field(current_field);
+
     Vector *point = NULL;
-
-    LOOP_FIELD(i, j, k, 
-        point = get_point_electric_field(i,j,k);
-        *point = zero_vector();
-    )
-
-    point = NULL;
 
     LOOP_KERNEL(i, j, k, 
         point = kernel_at(i, j, k);
@@ -278,7 +291,7 @@ void destr_fields() {
 }
 
 void guass_law_electric() {
-    Vector *point;
+    Vector *point = NULL;
 
     // clear delta_field
 
@@ -305,9 +318,31 @@ void guass_law_electric() {
     update_field(electric_field);
 }
 
+
+// (p/m)*(nE + J x B - r J)
+void update_current() {
+    Vector *point = NULL;
+
+    clear_delta_field();
+
+    LOOP_WORLD(i,j,k,
+        Vector *electric = get_node_electric_field(i,j,k);
+        Vector electric_term = scalar_mul(MOVABLE_PARTICLE_DENSITY, electric);
+        Vector *current = get_node_field(current_field,i,j,k);
+        Vector resistance_term = scalar_mul(-WIRE_RESISTANCE, current);
+        Vector sum_of_terms = vec_add(&electric_term, &resistance_term);
+        point = get_node_field(delta_field,i,j,k);
+
+        *point = scalar_mul(MOVABLE_PARTICLE_CHARGE/MOVABLE_PARTICLE_MASS, &sum_of_terms);
+    )
+
+    update_field(current_field);
+}
+
 void *process_field(void *arg) {
     while(is_running) {
         guass_law_electric();
+        printf("update\n");
     }
 
     pthread_exit(NULL);
