@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
+#include <pthread.h>
 
 #define FOR3D(I, WIDTH, J, HEIGHT, K, LENGTH, BODY) \
     for (int I = 0; I < WIDTH; I++) { \
@@ -20,6 +21,10 @@
 #define LOOP_KERNEL(I,J,K, BODY) FOR3D(I, 3, J, 3, K, 3, BODY)
 
 #define TILE_AT(ARRAY, I, WIDTH, J, HEIGHT, K, LENGTH, SIZE) ARRAY + (I*HEIGHT*LENGTH + J*LENGTH + K)*SIZE
+
+#define ABS_MOD(I, N) ((I) % (N) + (N)) % (N)
+
+void *process_field(void *arg);
 
 // world dimensions
 const int WORLD_WIDTH = 50;
@@ -113,7 +118,7 @@ int field_dimensions(int dim) {
 static int *physical_map;
 
 int *physical_map_tile(int i, int j, int k) {
-    return TILE_AT(physical_map, i, WORLD_WIDTH, j, WORLD_HEIGHT, k, WORLD_LENGTH, 1);
+    return TILE_AT(physical_map, ABS_MOD(i, WORLD_WIDTH), WORLD_WIDTH, ABS_MOD(j, WORLD_HEIGHT), WORLD_HEIGHT, ABS_MOD(k,WORLD_LENGTH), WORLD_LENGTH, 1);
 }
 
 int get_tile_physical_map(int i, int j, int k) {
@@ -129,7 +134,7 @@ Vector *get_point_field(Vector *field, int i, int j, int k) {
 }
 
 Vector *get_node_field(Vector *field, int i, int j, int k) {
-    return get_point_field(field, field_dimensions(i), field_dimensions(j), field_dimensions(k));
+    return get_point_field(field, field_dimensions(ABS_MOD(i, WORLD_WIDTH)), field_dimensions(ABS_MOD(j, WORLD_HEIGHT)), field_dimensions(ABS_MOD(k,WORLD_LENGTH)));
 }
 
 Vector *get_field_convolve(Vector *field, int i, int j, int k, int u, int v, int w) {
@@ -163,6 +168,8 @@ Vector *kernel_at(int i, int j, int k) {
 }
 
 static Vector *delta_field;
+
+pthread_t process_field_thread;
 
 // run at the start of the program
 void init_fields() {
@@ -198,6 +205,8 @@ void init_fields() {
     // delta_field is expected to be initialized by caller be for use
 
     delta_field = malloc(sizeof(Vector)*field_dimensions(WORLD_WIDTH)*field_dimensions(WORLD_HEIGHT)*field_dimensions(WORLD_LENGTH));
+
+    pthread_create(&process_field_thread, NULL, &process_field, NULL);
 
 
     printf("done initializing\n");
@@ -269,4 +278,10 @@ void guass_law_electric() {
 
         *get_node_electric_field(i,j,k) = average;
     )
+}
+
+void *process_field(void *arg) {
+    while(is_running) {
+        guass_law_electric();
+    }
 }

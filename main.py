@@ -56,7 +56,7 @@ class Game:
 
         self.current_layer = int(fields.WORLD_HEIGHT/2)
 
-        self.player = Player(64*7/FPS, 0.65)
+        self.player = Player(64/FPS, 0.65)
 
         self.player.position = np.array([
             fields.WORLD_WIDTH*TILE_SIZE/2
@@ -166,8 +166,6 @@ class Game:
 
                     self.draw_vec_tile(np.array([i*TILE_SIZE,j*TILE_SIZE]), vec_direction + vec_mag*6)
                     continue
-        
-        fields.guass_law_electric()
     
     def draw_physical_tile(self, position: NDArray, tile_type: int):
         self.draw_tile(self.physical_set, position, tile_type, 64)
