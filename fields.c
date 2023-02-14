@@ -187,6 +187,21 @@ void update_field(Vector *field) {
     )
 }
 
+double get_current_divergent(Vector *field, int i, int j, int k) {
+    double current_divergence = 0;
+
+    LOOP_KERNEL(u,v,w,
+        double delta_dot = dot(
+            kernel_at(u,v,w), 
+            get_field_convolve(field,
+                i,j,k,
+                u,v,w));
+        current_divergence += delta_dot;
+    )
+
+    return current_divergence;
+}
+
 static int _is_running;
 
 int is_running() {
@@ -274,17 +289,7 @@ void guass_law_electric() {
     LOOP_WORLD(i,j,k,
         double charge_density = charge_of(get_tile_physical_map(i,j,k));
         double predicted_divergence = charge_density/EPSILON_0;
-
-        double current_divergence = 0;
-
-        LOOP_KERNEL(u,v,w,
-            double delta_dot = dot(
-                kernel_at(u,v,w), 
-                get_field_convolve(electric_field,
-                    i,j,k,
-                    u,v,w));
-            current_divergence += delta_dot;
-        )
+        double current_divergence = get_current_divergent(electric_field,i,j,k);
 
         double divergence_delta = predicted_divergence - current_divergence;
 
