@@ -114,6 +114,10 @@ int field_dimensions(int dim) {
     return dim*2 + 1;
 } 
 
+Vector *alloc_vec_field() {
+    return malloc(sizeof(Vector)*field_dimensions(WORLD_WIDTH)*field_dimensions(WORLD_HEIGHT)*field_dimensions(WORLD_LENGTH));
+}
+
 // define globals
 static int *physical_map;
 
@@ -151,6 +155,38 @@ Vector *get_node_electric_field(int i, int j, int k) {
     return get_node_field(electric_field, i, j, k);
 }
 
+void clear_delta_field() {
+
+    Vector *point = NULL;
+
+    LOOP_FIELD(i,j,k,
+        point = get_point_field(delta_field, i, j, k);
+        *point = zero_vector();
+    )
+}
+
+void update_field(Vector *field) {
+    LOOP_FIELD(i,j,k,
+        Vector *point = get_point_field(field,i,j,k);
+        *point = vec_add(point, get_point_field(delta_field,i,j,k));
+    )
+
+    LOOP_WORLD(i,j,k,
+        Vector average = zero_vector();
+
+        LOOP_KERNEL(u,v,w,
+            if(u == 0 && v == 0 && w == 0) {
+                continue;
+            }
+            average = vec_add(&average, get_field_convolve(field,i,j,k,u,v,w));
+        )
+
+        average = scalar_mul(1.0/26.0, &average);
+
+        *get_point_field(field,i,j,k) = average;
+    )
+}
+
 static int _is_running;
 
 int is_running() {
@@ -182,7 +218,7 @@ void init_fields() {
         set_tile_physical_map(i, j, k, TILETYPE_INSULATOR);
     )
 
-    electric_field = malloc(sizeof(Vector)*field_dimensions(WORLD_WIDTH)*field_dimensions(WORLD_HEIGHT)*field_dimensions(WORLD_LENGTH));
+    electric_field = alloc_vec_field();
 
     Vector *point = NULL;
 
@@ -204,7 +240,9 @@ void init_fields() {
 
     // delta_field is expected to be initialized by caller be for use
 
-    delta_field = malloc(sizeof(Vector)*field_dimensions(WORLD_WIDTH)*field_dimensions(WORLD_HEIGHT)*field_dimensions(WORLD_LENGTH));
+    delta_field = alloc_vec_field();
+
+    // this thread applies the maxwell equations to the fields
 
     pthread_create(&process_field_thread, NULL, &process_field, NULL);
 
@@ -216,12 +254,11 @@ void init_fields() {
 // shouldn't matter because the globals are expected to last through the life time of the program
 void destr_fields() {
     pthread_join(process_field_thread, NULL);
-    printf("physical_map\n");
+
     free(physical_map);
-    printf("electric_field\n");
     free(electric_field);
-    printf("delta_field\n");
     free(delta_field);
+
     printf("end of process\n");
 }
 
@@ -230,10 +267,7 @@ void guass_law_electric() {
 
     // clear delta_field
 
-    LOOP_FIELD(i,j,k,
-        point = get_point_field(delta_field, i, j, k);
-        *point = zero_vector();
-    )
+    clear_delta_field();
 
     // calculate how much the field would have to change
 
@@ -263,25 +297,7 @@ void guass_law_electric() {
 
     // apply the field
 
-    LOOP_FIELD(i,j,k,
-        Vector *point = get_point_electric_field(i,j,k);
-        *point = vec_add(point, get_point_field(delta_field,i,j,k));
-    )
-
-    LOOP_WORLD(i,j,k,
-        Vector average = zero_vector();
-
-        LOOP_KERNEL(u,v,w,
-            if(u == 0 && v == 0 && w == 0) {
-                continue;
-            }
-            average = vec_add(&average, get_field_convolve(electric_field,i,j,k,u,v,w));
-        )
-
-        average = scalar_mul(1.0/26.0, &average);
-
-        *get_node_electric_field(i,j,k) = average;
-    )
+    update_field(electric_field);
 }
 
 void *process_field(void *arg) {
