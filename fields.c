@@ -230,7 +230,7 @@ void update_field(Vector *field) {
 
         average = scalar_mul(1.0/26.0, &average);
 
-        *get_point_field(field,i,j,k) = average;
+        *get_node_field(field,i,j,k) = average;
     )
 }
 
@@ -342,7 +342,6 @@ void update_current() {
 void *process_field(void *arg) {
     while(is_running) {
         guass_law_electric();
-        printf("update\n");
     }
 
     pthread_exit(NULL);
