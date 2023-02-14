@@ -65,6 +65,8 @@ class Game:
 
         self.mode = MODE_NORMAL
 
+        self.delta = FPS
+
         fields.init_fields()
 
     def handle_event(self, event: pg.event.Event) -> None:
@@ -116,7 +118,7 @@ class Game:
         
         player_direction = normalize(player_direction)
 
-        self.player.move(player_direction)
+        self.player.move(player_direction, self.delta)
 
         self.screeen.fill(pg.color.Color(0xFF, 0xFF, 0xFF))
 
@@ -203,7 +205,7 @@ class Game:
             self.process()
 
             display.update()
-            self.clock.tick(FPS)
+            self.delta = self.clock.tick(FPS)
     
     def __del__(self):
         fields.destr_fields()

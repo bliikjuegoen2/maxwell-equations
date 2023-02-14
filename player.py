@@ -31,9 +31,9 @@ class Player:
     def pos(self) -> Tuple[int,int]:
         return tuple(self.position)
     
-    def move(self, direction: NDArray):
+    def move(self, direction: NDArray, delta: float):
 
-        desired_velocity = self.speed*direction
+        desired_velocity = self.speed*delta*direction
 
         self.velocity = lerp(
             self.velocity
