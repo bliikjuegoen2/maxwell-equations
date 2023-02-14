@@ -27,9 +27,9 @@
 void *process_field(void *arg);
 
 // world dimensions
-const int WORLD_WIDTH = 50;
-const int WORLD_HEIGHT = 15;
-const int WORLD_LENGTH = 50;
+const int WORLD_WIDTH = 100;
+const int WORLD_HEIGHT = 25;
+const int WORLD_LENGTH = 100;
 
 // tile types
 const int TILETYPE_WIRE = 0;
@@ -215,8 +215,12 @@ void init_fields() {
 // destructor
 // shouldn't matter because the globals are expected to last through the life time of the program
 void destr_fields() {
+    pthread_join(process_field_thread, NULL);
+    printf("physical_map\n");
     free(physical_map);
+    printf("electric_field\n");
     free(electric_field);
+    printf("delta_field\n");
     free(delta_field);
     printf("end of process\n");
 }
@@ -284,4 +288,6 @@ void *process_field(void *arg) {
     while(is_running) {
         guass_law_electric();
     }
+
+    pthread_exit(NULL);
 }
