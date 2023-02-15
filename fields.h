@@ -39,6 +39,9 @@ extern double charge_of(int tile_type);
 extern Vector *get_point_electric_field(int i, int j, int k);
 extern Vector *get_node_electric_field(int i, int j, int k);
 
+// current field
+extern Vector *get_current(int i, int j, int k);
+
 // program status
 extern int is_running();
 extern void quit();

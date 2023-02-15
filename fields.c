@@ -165,6 +165,10 @@ Vector *get_node_electric_field(int i, int j, int k) {
 
 static Vector *current_field;
 
+Vector *get_current(int i, int j, int k) {
+    return TILE_AT(current_field, ABS_MOD(i, WORLD_WIDTH), WORLD_WIDTH, ABS_MOD(j, WORLD_HEIGHT), WORLD_HEIGHT, ABS_MOD(k,WORLD_LENGTH), WORLD_LENGTH, 1);
+}
+
 void clear_field(Vector *field) {
     Vector *point = NULL;
 
@@ -251,11 +255,16 @@ void init_fields() {
 
     clear_field(electric_field);
 
-    current_field = alloc_vec_field();
-
-    clear_field(current_field);
+    current_field = malloc(sizeof(Vector)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
 
     Vector *point = NULL;
+
+    LOOP_WORLD(i,j,k,
+        point = get_current(i, j, k);
+        *point = zero_vector();
+    )
+
+    point = NULL;
 
     LOOP_KERNEL(i, j, k, 
         point = kernel_at(i, j, k);
@@ -319,29 +328,38 @@ void guass_law_electric() {
 }
 
 
-// (p/m)*(nE + J x B - r J)
+// (p/m)*(nE + I x B - r I)
 void update_current() {
     Vector *point = NULL;
 
-    clear_delta_field();
-
-    LOOP_WORLD(i,j,k,
-        Vector *electric = get_node_electric_field(i,j,k);
-        Vector electric_term = scalar_mul(MOVABLE_PARTICLE_DENSITY, electric);
-        Vector *current = get_node_field(current_field,i,j,k);
-        Vector resistance_term = scalar_mul(-WIRE_RESISTANCE, current);
-        Vector sum_of_terms = vec_add(&electric_term, &resistance_term);
-        point = get_node_field(delta_field,i,j,k);
-
-        *point = scalar_mul(MOVABLE_PARTICLE_CHARGE/MOVABLE_PARTICLE_MASS, &sum_of_terms);
+    LOOP_WORLD(i, j, k,
+        point = get_node_field(delta_field, i, j, k);
+        *point = zero_vector();
     )
 
-    update_field(current_field);
+    LOOP_WORLD(i, j, k,
+        Vector *E = get_node_electric_field(i, j, k);
+        Vector *I = get_current(i, j, k);
+        Vector electric_term = scalar_mul(MOVABLE_PARTICLE_DENSITY, E);
+        Vector resistance_term = scalar_mul(-WIRE_RESISTANCE, I);
+        Vector sum = vec_add(&electric_term, &resistance_term);
+        Vector result = scalar_mul(MOVABLE_PARTICLE_CHARGE/MOVABLE_PARTICLE_MASS, &sum);
+
+        point = get_node_field(delta_field, i, j, k);
+        *point = result;
+    )
+
+    LOOP_WORLD(i, j, k,
+        Vector *delta = get_node_field(delta_field, i, j, k);
+        point = get_current(i, j, k);
+        *point = vec_add(point, delta);
+    )
 }
 
 void *process_field(void *arg) {
     while(is_running) {
         guass_law_electric();
+        update_current();
     }
 
     pthread_exit(NULL);

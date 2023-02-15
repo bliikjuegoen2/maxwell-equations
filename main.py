@@ -35,6 +35,12 @@ VEC_RIGHT = 5
 # Visual Modes
 MODE_NORMAL = 0
 MODE_ELECTRIC_FIELD = 1
+MODE_CURRENT = 2
+
+mode_to_field = {
+    MODE_ELECTRIC_FIELD: fields.get_node_electric_field
+    , MODE_CURRENT: fields.get_current
+}
 
 # Scientific Constants
 epsilon0 = 1
@@ -105,6 +111,8 @@ class Game:
             self.mode = MODE_NORMAL
         if key_pressed[pg.K_e]:
             self.mode = MODE_ELECTRIC_FIELD
+        if key_pressed[pg.K_i]:
+            self.mode = MODE_CURRENT
 
         
         mouse_pressed = pg.mouse.get_pressed()
@@ -136,8 +144,8 @@ class Game:
                         , fields.get_tile_physical_map(i,self.current_layer,j)
                     )
                     continue
-                if self.mode == MODE_ELECTRIC_FIELD:
-                    field = self.as_list(fields.get_node_electric_field(i,self.current_layer,j))
+                if self.mode in mode_to_field.keys():
+                    field = self.as_list(mode_to_field[self.mode](i,self.current_layer,j))
                     direction = max(enumerate(np.abs(field)), key=lambda x: x[1])[0]
                     size = np.linalg.norm(field)
                     vec_direction = 0
