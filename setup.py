@@ -6,6 +6,7 @@ fields_module = Extension('_fields',
         'fields.c'
         , 'fields_wrap.c'
         , 'vector.c'
+        , 'kernel.c'
     ],
 )
 
