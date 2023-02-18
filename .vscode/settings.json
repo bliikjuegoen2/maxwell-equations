@@ -2,6 +2,7 @@
     "files.associations": {
         "fields.h": "c",
         "stdio.h": "c",
-        "random": "c"
+        "random": "c",
+        "vector.h": "c"
     }
 }

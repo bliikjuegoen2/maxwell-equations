@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <math.h>
 #include <pthread.h>
 
 Vector *kernel_at(int i, int j, int k);
@@ -57,66 +56,6 @@ double charge_of(int tile_type) {
 
     return 0;
 }
-
-// getters for vector struct
-double get_x(Vector *vec) {
-    return vec->x;
-}
-
-double get_y(Vector *vec) {
-    return vec->y;
-}
-
-double get_z(Vector *vec) {
-    return vec->z;
-}
-
-double dot(Vector *a, Vector *b) {
-    return a->x * b->x + a->y * b->y + a->z * b->z;
-}
-
-Vector zero_vector() {
-    Vector r;
-    r.x = 0;
-    r.y = 0;
-    r.z = 0;
-    return r;
-}
-
-Vector scalar_mul(double c, Vector *v) {
-    Vector r;
-    r.x = c*v->x;
-    r.y = c*v->y;
-    r.z = c*v->z;
-    return r;
-}
-
-Vector vec_add(Vector *a, Vector *b) {
-    Vector r;
-
-    r.x = a->x + b->x;
-    r.y = a->y + b->y;
-    r.z = a->z + b->z;
-
-    return r;
-}
-
-
-static double magnitude(Vector *x) {
-    return sqrt(dot(x,x));
-}
-
-Vector normalize(Vector *v) {
-    double magnitude_v = magnitude(v);
-
-    // test if zero vector
-    if (magnitude_v == 0) {
-        return *v;
-    }
-
-    return scalar_mul(1/magnitude_v, v);
-}
-
 
 int field_dimensions(int dim) {
     return dim*2 + 1;

@@ -1,6 +1,8 @@
 #ifndef MAXWELL_EQUARIONS_FIELDS_H
 #define MAXWELL_EQUARIONS_FIELDS_H
 
+#include "vector.h"
+
 // world dimensions
 extern const int WORLD_WIDTH;
 extern const int WORLD_HEIGHT;
@@ -14,20 +16,6 @@ extern const int TILETYPE_INSULATOR;
 
 // physical constants
 extern const double EPSILON_0;
-
-// vectors
-typedef union Vector {
-    struct {
-        double x;
-        double y;
-        double z;
-    };
-    double array[3];
-} Vector;
-
-extern double get_x(Vector *vec);
-extern double get_y(Vector *vec);
-extern double get_z(Vector *vec);
 
 // physical map
 extern int get_tile_physical_map(int i, int j, int k);

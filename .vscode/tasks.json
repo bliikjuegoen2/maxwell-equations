@@ -6,7 +6,7 @@
         {
             "label": "build-swig",
             "type": "shell",
-            "command": "${workspaceFolder}/build/build-swig.sh"
+            "command": "${workspaceFolder}/.vscode/build-swig.sh"
         }
     ]
 }
