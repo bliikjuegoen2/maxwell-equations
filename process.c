@@ -13,36 +13,46 @@ Vector *alloc_vec_field() {
     return malloc(sizeof(Vector)*field_dimensions(WORLD_WIDTH)*field_dimensions(WORLD_HEIGHT)*field_dimensions(WORLD_LENGTH));
 }
 
+#define DEF_SETGET_FIELD(FIELD_NAME, TYPE) \
+\
+TYPE get_tile_##FIELD_NAME(int i, int j, int k) { \
+    return *get_##FIELD_NAME(i,j,k); \
+} \
+\
+void set_tile_##FIELD_NAME(int i, int j, int k, TYPE value) {\
+    *get_##FIELD_NAME(i,j,k) = value;\
+}\
+
+#define DEF_BASIC_FIELD(FIELD_NAME, TYPE) \
+\
+TYPE *FIELD_NAME;\
+\
+TYPE *get_##FIELD_NAME(int i, int j, int k) {\
+    return TILE_AT(\
+        FIELD_NAME\
+        , ABS_MOD(i, WORLD_WIDTH), WORLD_WIDTH\
+        , ABS_MOD(j, WORLD_HEIGHT), WORLD_HEIGHT\
+        , ABS_MOD(k,WORLD_LENGTH), WORLD_LENGTH\
+        , 1);\
+}\
+
+#define DEF_PADDED_FIELD(FIELD_NAME, TYPE) \
+TYPE *FIELD_NAME; \
+\
+TYPE *get_point_##FIELD_NAME(int i, int j, int k) {\
+    return get_point_field(FIELD_NAME, i, j, k);\
+}\
+\
+TYPE *get_node_##FIELD_NAME(int i, int j, int k) {\
+    return get_node_field(FIELD_NAME, i, j, k);\
+}\
+
 // define globals
-static int *physical_map;
 
-int *physical_map_tile(int i, int j, int k) {
-    return TILE_AT(physical_map, ABS_MOD(i, WORLD_WIDTH), WORLD_WIDTH, ABS_MOD(j, WORLD_HEIGHT), WORLD_HEIGHT, ABS_MOD(k,WORLD_LENGTH), WORLD_LENGTH, 1);
-}
-
-int get_tile_physical_map(int i, int j, int k) {
-    return *physical_map_tile(i,j,k);
-}
-
-void set_tile_physical_map(int i, int j, int k, int value) {
-    *physical_map_tile(i,j,k) = value;
-}
-
-static Vector *electric_field;
-
-Vector *get_point_electric_field(int i, int j, int k) {
-    return get_point_field(electric_field, i, j, k);
-}
-
-Vector *get_node_electric_field(int i, int j, int k) {
-    return get_node_field(electric_field, i, j, k);
-}
-
-static Vector *current_field;
-
-Vector *get_current(int i, int j, int k) {
-    return TILE_AT(current_field, ABS_MOD(i, WORLD_WIDTH), WORLD_WIDTH, ABS_MOD(j, WORLD_HEIGHT), WORLD_HEIGHT, ABS_MOD(k,WORLD_LENGTH), WORLD_LENGTH, 1);
-}
+DEF_BASIC_FIELD(physical_map, int)
+DEF_SETGET_FIELD(physical_map, int)
+DEF_PADDED_FIELD(electric_field, Vector)
+DEF_BASIC_FIELD(current_field, Vector)
 
 void clear_field(Vector *field) {
     Vector *point = NULL;
@@ -129,7 +139,7 @@ void init_fields() {
     Vector *point = NULL;
 
     LOOP_WORLD(i,j,k,
-        point = get_current(i, j, k);
+        point = get_current_field(i, j, k);
         *point = zero_vector();
     )
 
@@ -163,6 +173,7 @@ void destr_fields() {
 
     free(physical_map);
     free(electric_field);
+    free(current_field);
     free(delta_field);
 
     printf("end of process\n");
@@ -208,7 +219,7 @@ void update_current() {
 
     LOOP_WORLD(i, j, k,
         Vector *E = get_node_electric_field(i, j, k);
-        Vector *I = get_current(i, j, k);
+        Vector *I = get_current_field(i, j, k);
         Vector electric_term = scalar_mul(MOVABLE_PARTICLE_DENSITY, E);
         Vector resistance_term = scalar_mul(-WIRE_RESISTANCE, I);
         Vector sum = vec_add(&electric_term, &resistance_term);
@@ -220,7 +231,7 @@ void update_current() {
 
     LOOP_WORLD(i, j, k,
         Vector *delta = get_node_field(delta_field, i, j, k);
-        point = get_current(i, j, k);
+        point = get_current_field(i, j, k);
         *point = vec_add(point, delta);
     )
 }

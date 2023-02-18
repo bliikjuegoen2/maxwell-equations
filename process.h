@@ -3,23 +3,29 @@
 
 #include "vector.h"
 
-// physical map
-extern int get_tile_physical_map(int i, int j, int k);
-extern void set_tile_physical_map(int i, int j, int k, int value);
+#define DECL_SETGET_FIELD(FIELD_NAME, TYPE) \
+\
+TYPE get_tile_##FIELD_NAME(int i, int j, int k);\
+void set_tile_##FIELD_NAME(int i, int j, int k, TYPE value);\
 
-extern double charge_of(int tile_type);
+#define DECL_BASIC_FIELD(FIELD_NAME, TYPE) \
+\
+TYPE *get_##FIELD_NAME(int i, int j, int k); \
 
-// elctric field
-extern Vector *get_point_electric_field(int i, int j, int k);
-extern Vector *get_node_electric_field(int i, int j, int k);
+#define DECL_PADDED_FIELD(FIELD_NAME, TYPE) \
+\
+TYPE *get_point_##FIELD_NAME(int i, int j, int k); \
+TYPE *get_node_##FIELD_NAME(int i, int j, int k); \
 
-// current field
-extern Vector *get_current(int i, int j, int k);
+
+DECL_BASIC_FIELD(physical_map, int)
+DECL_SETGET_FIELD(physical_map, int)
+DECL_PADDED_FIELD(electric_field, Vector)
+DECL_BASIC_FIELD(current_field, Vector)
 
 // program status
 extern int is_running();
 extern void quit();
-
 
 // constructors and destructors
 extern void init_fields();
