@@ -7,13 +7,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 
-#define ABS_MOD(I, N) ((I) % (N) + (N)) % (N)
-
 void *process_field(void *arg);
-
-int field_dimensions(int dim) {
-    return dim*2 + 1;
-} 
 
 Vector *alloc_vec_field() {
     return malloc(sizeof(Vector)*field_dimensions(WORLD_WIDTH)*field_dimensions(WORLD_HEIGHT)*field_dimensions(WORLD_LENGTH));
@@ -32,14 +26,6 @@ int get_tile_physical_map(int i, int j, int k) {
 
 void set_tile_physical_map(int i, int j, int k, int value) {
     *physical_map_tile(i,j,k) = value;
-}
-
-Vector *get_point_field(Vector *field, int i, int j, int k) {
-    return TILE_AT(field, i, field_dimensions(WORLD_WIDTH), j, field_dimensions(WORLD_HEIGHT), k, field_dimensions(WORLD_LENGTH), 1);
-}
-
-Vector *get_node_field(Vector *field, int i, int j, int k) {
-    return get_point_field(field, field_dimensions(ABS_MOD(i, WORLD_WIDTH)), field_dimensions(ABS_MOD(j, WORLD_HEIGHT)), field_dimensions(ABS_MOD(k,WORLD_LENGTH)));
 }
 
 Vector *get_field_convolve(Vector *field, int i, int j, int k, int u, int v, int w) {

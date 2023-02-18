@@ -1,6 +1,8 @@
 #ifndef MAXWELL_EQUATIONS_ACCESSOR_H
 #define MAXWELL_EQUATIONS_ACCESSOR_H
 
+#include "vector.h"
+
 #define FOR3D(I, WIDTH, J, HEIGHT, K, LENGTH, BODY) \
     for (int I = 0; I < WIDTH; I++) { \
         for (int J = 0; J < HEIGHT; J++) { \
@@ -17,5 +19,12 @@
 #define LOOP_KERNEL(I,J,K, BODY) FOR3D(I, 3, J, 3, K, 3, BODY)
 
 #define TILE_AT(ARRAY, I, WIDTH, J, HEIGHT, K, LENGTH, SIZE) ARRAY + (I*HEIGHT*LENGTH + J*LENGTH + K)*SIZE
+Q
+#define ABS_MOD(I, N) ((I) % (N) + (N)) % (N)
+
+int field_dimensions(int dim);
+
+Vector *get_point_field(Vector *field, int i, int j, int k);
+Vector *get_node_field(Vector *field, int i, int j, int k);
 
 #endif // !MAXWELL_EQUATIONS_ACCESSOR_H
