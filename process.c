@@ -28,10 +28,6 @@ void set_tile_physical_map(int i, int j, int k, int value) {
     *physical_map_tile(i,j,k) = value;
 }
 
-Vector *get_field_convolve(Vector *field, int i, int j, int k, int u, int v, int w) {
-    return get_point_field(field, i*2+u, j*2+v, k*2+w);
-}
-
 static Vector *electric_field;
 
 Vector *get_point_electric_field(int i, int j, int k) {

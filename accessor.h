@@ -19,12 +19,13 @@
 #define LOOP_KERNEL(I,J,K, BODY) FOR3D(I, 3, J, 3, K, 3, BODY)
 
 #define TILE_AT(ARRAY, I, WIDTH, J, HEIGHT, K, LENGTH, SIZE) ARRAY + (I*HEIGHT*LENGTH + J*LENGTH + K)*SIZE
-Q
+
 #define ABS_MOD(I, N) ((I) % (N) + (N)) % (N)
 
 int field_dimensions(int dim);
 
 Vector *get_point_field(Vector *field, int i, int j, int k);
 Vector *get_node_field(Vector *field, int i, int j, int k);
+Vector *get_field_convolve(Vector *field, int i, int j, int k, int u, int v, int w);
 
 #endif // !MAXWELL_EQUATIONS_ACCESSOR_H
