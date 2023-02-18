@@ -3,10 +3,11 @@ from distutils.core import setup, Extension
 
 fields_module = Extension('_fields',
     sources=[
-        'fields.c'
+        'process.c'
         , 'fields_wrap.c'
         , 'vector.c'
         , 'kernel.c'
+        , 'world_constants.c'
     ],
 )
 

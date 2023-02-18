@@ -4,6 +4,10 @@
         "stdio.h": "c",
         "random": "c",
         "vector.h": "c",
-        "pthread.h": "c"
+        "pthread.h": "c",
+        "process.h": "c",
+        "kernel.h": "c",
+        "stdbool.h": "c",
+        "world_constants.h": "c"
     }
 }
