@@ -2,7 +2,11 @@
 from distutils.core import setup, Extension
 
 fields_module = Extension('_fields',
-    sources=['fields.c', 'fields_wrap.c', 'vector.c'],
+    sources=[
+        'fields.c'
+        , 'fields_wrap.c'
+        , 'vector.c'
+    ],
 )
 
 setup (name = 'fields',

@@ -1,10 +1,9 @@
-#include "fields.h" 
+#include "fields.h"
+#include "kernel.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <pthread.h>
-
-Vector *kernel_at(int i, int j, int k);
 
 #define FOR3D(I, WIDTH, J, HEIGHT, K, LENGTH, BODY) \
     for (int I = 0; I < WIDTH; I++) { \
@@ -140,12 +139,6 @@ int is_running() {
 
 void quit() {
     _is_running = 0;
-}
-
-static Vector kernel[3*3*3];
-
-Vector *kernel_at(int i, int j, int k) {
-    return TILE_AT(kernel, i, 3, j, 3, k, 3, 1);
 }
 
 static Vector *delta_field;

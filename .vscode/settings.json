@@ -3,6 +3,7 @@
         "fields.h": "c",
         "stdio.h": "c",
         "random": "c",
-        "vector.h": "c"
+        "vector.h": "c",
+        "pthread.h": "c"
     }
 }
