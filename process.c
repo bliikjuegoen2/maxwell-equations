@@ -10,6 +10,23 @@
 
 void *process_field(void *arg);
 
+int debug_x = 0;
+int debug_y = 0;
+int debug_z = 0;
+
+void set_debug_x(int x) {
+    debug_x = x;
+}
+
+void set_debug_y(int y) {
+    debug_y = y;
+}
+
+void set_debug_z(int z) {
+    debug_z = z;
+}
+
+
 #define INIT_SCALAR_KERNEL(GETTER, AXIS) \
 \
 LOOP_KERNEL(i, j, k, \
@@ -192,11 +209,11 @@ void update_charge() {
     clear_delta_float_basic_field();
 
     LOOP_WORLD(i, j, k,
-        point = get_current_field(i,j,k);
+        point = get_current_field(i,j,k);\
 
         LOOP_KERNEL(u,v,w,
             *get_delta_float_basic_field(i + u - 1, j + v - 1, k + w - 1) 
-                = point->x * *kernel_scalar_x_at(u, v, w)
+                += point->x * *kernel_scalar_x_at(u, v, w)
                 + point->y * *kernel_scalar_y_at(u, v, w)
                 + point->z * *kernel_scalar_z_at(u, v, w);
         )

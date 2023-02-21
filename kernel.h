@@ -8,12 +8,12 @@
 \
 extern TYPE KERNEL[3*3*3]; \
 \
-TYPE *KERNEL##_at(int i, int j, int k); \
+extern TYPE *KERNEL##_at(int i, int j, int k); \
 
 
 DECL_KERNEL(kernel_vec, Vector)
-DECL_KERNEL(kernel_scalar_x, float)
-DECL_KERNEL(kernel_scalar_y, float)
-DECL_KERNEL(kernel_scalar_z, float)
+DECL_KERNEL(kernel_scalar_x, double)
+DECL_KERNEL(kernel_scalar_y, double)
+DECL_KERNEL(kernel_scalar_z, double)
 
 #endif // !MAXWELL_EQUATIONS_KERNEL_H

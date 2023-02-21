@@ -5,9 +5,11 @@
 #include "vector.h"
 #include "world_constants.h"
 #include "field.h"
+#include "kernel.h"
 %}
 
 %include "process.h"
 %include "world_constants.h"
 %include "vector.h"
 %include "field.h"
+%include "kernel.h"

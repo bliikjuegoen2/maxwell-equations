@@ -36,10 +36,15 @@ VEC_RIGHT = 5
 MODE_NORMAL = 0
 MODE_ELECTRIC_FIELD = 1
 MODE_CURRENT = 2
+MODE_CHARGE = 3
 
-mode_to_field = {
+mode_to_vec_field = {
     MODE_ELECTRIC_FIELD: fields.get_node_electric_field
     , MODE_CURRENT: fields.get_current_field
+}
+
+mode_to_scalar_field = {
+    MODE_CHARGE: fields.get_tile_charge_field
 }
 
 # Scientific Constants
@@ -57,6 +62,7 @@ class Game:
 
         self.physical_set = pg.image.load("tilesets/physical-set.png")
         self.vector_set = pg.image.load("tilesets/vector-set.png")
+        self.scalar_set = pg.image.load("tilesets/scalar-set.png")
 
         self.current_tile_type = fields.TILETYPE_WIRE
 
@@ -113,6 +119,8 @@ class Game:
             self.mode = MODE_ELECTRIC_FIELD
         if key_pressed[pg.K_i]:
             self.mode = MODE_CURRENT
+        if key_pressed[pg.K_q]:
+            self.mode = MODE_CHARGE
 
         
         mouse_pressed = pg.mouse.get_pressed()
@@ -144,8 +152,8 @@ class Game:
                         , fields.get_tile_physical_map(i,self.current_layer,j)
                     )
                     continue
-                if self.mode in mode_to_field.keys():
-                    field = self.as_list(mode_to_field[self.mode](i,self.current_layer,j))
+                if self.mode in mode_to_vec_field.keys():
+                    field = self.as_list(mode_to_vec_field[self.mode](i,self.current_layer,j))
                     direction = max(enumerate(np.abs(field)), key=lambda x: x[1])[0]
                     size = np.linalg.norm(field)
                     vec_direction = 0
@@ -173,6 +181,29 @@ class Game:
                         vec_mag = 1
 
                     self.draw_vec_tile(np.array([i*TILE_SIZE,j*TILE_SIZE]), vec_direction + vec_mag*6)
+                    continue
+                if self.mode in mode_to_scalar_field.keys():
+                    scalar = mode_to_scalar_field[self.mode](i,self.current_layer,j)
+                    tile = 4
+                    if scalar <= -0.875:
+                        tile = 0
+                    elif scalar <= -0.625:
+                        tile = 1
+                    elif scalar <= -0.375:
+                        tile = 2
+                    elif scalar <= -0.125:
+                        tile = 3
+                    elif scalar <= 0.125:
+                        tile = 4
+                    elif scalar <= 0.375:
+                        tile = 5
+                    elif scalar <= 0.625:
+                        tile = 6
+                    elif scalar <= 0.875:
+                        tile = 7
+                    else:
+                        tile = 8
+                    self.draw_tile(self.scalar_set, np.array([i*TILE_SIZE,j*TILE_SIZE]), tile, 9)
                     continue
     
     def draw_physical_tile(self, position: NDArray, tile_type: int):
