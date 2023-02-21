@@ -9,6 +9,7 @@ fields_module = Extension('_fields',
         , 'kernel.c'
         , 'world_constants.c'
         , 'accessor.c'
+        , 'field.c'
     ],
 )
 

@@ -39,7 +39,7 @@ MODE_CURRENT = 2
 
 mode_to_field = {
     MODE_ELECTRIC_FIELD: fields.get_node_electric_field
-    , MODE_CURRENT: fields.get_current
+    , MODE_CURRENT: fields.get_current_field
 }
 
 # Scientific Constants

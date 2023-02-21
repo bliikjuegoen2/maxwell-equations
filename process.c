@@ -6,53 +6,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include "field.h"
 
 void *process_field(void *arg);
-
-Vector *alloc_vec_field() {
-    return malloc(sizeof(Vector)*field_dimensions(WORLD_WIDTH)*field_dimensions(WORLD_HEIGHT)*field_dimensions(WORLD_LENGTH));
-}
-
-#define DEF_SETGET_FIELD(FIELD_NAME, TYPE) \
-\
-TYPE get_tile_##FIELD_NAME(int i, int j, int k) { \
-    return *get_##FIELD_NAME(i,j,k); \
-} \
-\
-void set_tile_##FIELD_NAME(int i, int j, int k, TYPE value) {\
-    *get_##FIELD_NAME(i,j,k) = value;\
-}\
-
-#define DEF_BASIC_FIELD(FIELD_NAME, TYPE) \
-\
-TYPE *FIELD_NAME;\
-\
-TYPE *get_##FIELD_NAME(int i, int j, int k) {\
-    return TILE_AT(\
-        FIELD_NAME\
-        , ABS_MOD(i, WORLD_WIDTH), WORLD_WIDTH\
-        , ABS_MOD(j, WORLD_HEIGHT), WORLD_HEIGHT\
-        , ABS_MOD(k,WORLD_LENGTH), WORLD_LENGTH\
-        , 1);\
-}\
-
-#define DEF_PADDED_FIELD(FIELD_NAME, TYPE) \
-TYPE *FIELD_NAME; \
-\
-TYPE *get_point_##FIELD_NAME(int i, int j, int k) {\
-    return get_point_field(FIELD_NAME, i, j, k);\
-}\
-\
-TYPE *get_node_##FIELD_NAME(int i, int j, int k) {\
-    return get_node_field(FIELD_NAME, i, j, k);\
-}\
-
-// define globals
-
-DEF_BASIC_FIELD(physical_map, int)
-DEF_SETGET_FIELD(physical_map, int)
-DEF_PADDED_FIELD(electric_field, Vector)
-DEF_BASIC_FIELD(current_field, Vector)
 
 void clear_field(Vector *field) {
     Vector *point = NULL;
@@ -124,17 +80,13 @@ void init_fields() {
 
     _is_running = 1;
 
-    physical_map = malloc(sizeof(int)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
+    alloc_fields();
 
     LOOP_WORLD(i, j, k,
         set_tile_physical_map(i, j, k, TILETYPE_INSULATOR);
     )
 
-    electric_field = alloc_vec_field();
-
-    clear_field(electric_field);
-
-    current_field = malloc(sizeof(Vector)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
+    clear_field(electric_field_data());
 
     Vector *point = NULL;
 
@@ -171,16 +123,14 @@ void init_fields() {
 void destr_fields() {
     pthread_join(process_field_thread, NULL);
 
-    free(physical_map);
-    free(electric_field);
-    free(current_field);
+    free_fields();
+
     free(delta_field);
 
     printf("end of process\n");
 }
 
 void guass_law_electric() {
-    Vector *point = NULL;
 
     // clear delta_field
 
@@ -191,7 +141,7 @@ void guass_law_electric() {
     LOOP_WORLD(i,j,k,
         double charge_density = charge_of(get_tile_physical_map(i,j,k));
         double predicted_divergence = charge_density/EPSILON_0;
-        double current_divergence = get_current_divergent(electric_field,i,j,k);
+        double current_divergence = get_current_divergent(electric_field_data(),i,j,k);
 
         double divergence_delta = predicted_divergence - current_divergence;
 
@@ -204,7 +154,7 @@ void guass_law_electric() {
 
     // apply the field
 
-    update_field(electric_field);
+    update_field(electric_field_data());
 }
 
 
@@ -237,7 +187,7 @@ void update_current() {
 }
 
 void *process_field(void *arg) {
-    while(is_running) {
+    while(is_running()) {
         guass_law_electric();
         update_current();
     }
