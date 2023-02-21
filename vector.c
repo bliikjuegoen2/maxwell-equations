@@ -15,6 +15,10 @@ double get_z(Vector *vec) {
     return vec->z;
 }
 
+double get_scalar(double *x) {
+    return *x;
+}
+
 // constructors
 
 Vector zero_vector() {

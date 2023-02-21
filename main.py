@@ -44,7 +44,7 @@ mode_to_vec_field = {
 }
 
 mode_to_scalar_field = {
-    MODE_CHARGE: fields.get_tile_charge_field
+    MODE_CHARGE: fields.get_node_charge_field
 }
 
 # Scientific Constants
@@ -183,7 +183,7 @@ class Game:
                     self.draw_vec_tile(np.array([i*TILE_SIZE,j*TILE_SIZE]), vec_direction + vec_mag*6)
                     continue
                 if self.mode in mode_to_scalar_field.keys():
-                    scalar = mode_to_scalar_field[self.mode](i,self.current_layer,j)
+                    scalar = fields.get_scalar(mode_to_scalar_field[self.mode](i,self.current_layer,j))
                     tile = 4
                     if scalar <= -0.875:
                         tile = 0

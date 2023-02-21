@@ -16,6 +16,8 @@ extern double get_x(Vector *vec);
 extern double get_y(Vector *vec);
 extern double get_z(Vector *vec);
 
+extern double get_scalar(double *x);
+
 // constructors
 extern Vector zero_vector();
 

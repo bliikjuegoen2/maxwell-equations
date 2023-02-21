@@ -159,7 +159,7 @@ void guass_law_electric() {
     // calculate how much the field would have to change
 
     LOOP_WORLD(i,j,k,
-        double charge_density = charge_of(get_tile_physical_map(i,j,k)) + get_tile_charge_field(i,j,k);
+        double charge_density = charge_of(get_tile_physical_map(i,j,k)) + *get_node_charge_field(i,j,k);
         double predicted_divergence = charge_density/EPSILON_0;
         double current_divergence = get_current_divergent(electric_field_data(),i,j,k);
 
@@ -213,13 +213,13 @@ void update_current() {
 void update_charge() {
     Vector *point = NULL;
 
-    clear_delta_float_basic_field();
+    clear_delta_vec_padded_field();
 
     LOOP_WORLD(i, j, k,
         point = get_current_field(i,j,k);\
 
         LOOP_KERNEL(u,v,w,
-            *get_delta_float_basic_field(i + u - 1, j + v - 1, k + w - 1) 
+            *get_node_delta_float_padded_field(i + u - 1, j + v - 1, k + w - 1) 
                 += point->x * *kernel_scalar_x_at(u, v, w)
                 + point->y * *kernel_scalar_y_at(u, v, w)
                 + point->z * *kernel_scalar_z_at(u, v, w);
@@ -227,7 +227,7 @@ void update_charge() {
     )
 
     LOOP_WORLD(i, j, k,
-        *get_charge_field(i, j, k) += *get_delta_float_basic_field(i,j,k);
+        *get_node_charge_field(i, j, k) += *get_node_delta_float_padded_field(i,j,k);
     )
 }
 

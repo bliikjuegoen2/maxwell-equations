@@ -35,11 +35,20 @@ TYPE *FIELD_NAME##_data() {\
 TYPE *FIELD_NAME; \
 \
 TYPE *get_point_##FIELD_NAME(int i, int j, int k) {\
-    return get_point_field(FIELD_NAME, i, j, k);\
+    return TILE_AT( \
+        FIELD_NAME \
+        , i, field_dimensions(WORLD_WIDTH) \
+        , j, field_dimensions(WORLD_HEIGHT) \
+        , k, field_dimensions(WORLD_LENGTH) \
+        , 1); \
 }\
 \
 TYPE *get_node_##FIELD_NAME(int i, int j, int k) {\
-    return get_node_field(FIELD_NAME, i, j, k);\
+    return get_point_##FIELD_NAME( \
+        field_dimensions(ABS_MOD(i, WORLD_WIDTH)) \
+        , field_dimensions(ABS_MOD(j, WORLD_HEIGHT)) \
+        , field_dimensions(ABS_MOD(k, WORLD_LENGTH)) \
+        ); \
 }\
 \
 TYPE *FIELD_NAME##_data() {\
@@ -69,13 +78,12 @@ DEF_CLEAR_FIELD(
     , zero_vector()
     )
 DEF_BASIC_FIELD(current_field, Vector)
-DEF_BASIC_FIELD(charge_field, double)
-DEF_SETGET_FIELD(charge_field, double)
+DEF_PADDED_FIELD(charge_field, double)
 DEF_CLEAR_FIELD(
     charge_field
     , double
     , LOOP_WORLD
-    , get_charge_field
+    , get_point_charge_field
     , 0.0
     )
 
@@ -96,29 +104,37 @@ DEF_CLEAR_FIELD(
     , get_delta_vec_basic_field
     , zero_vector()
     )
-DEF_BASIC_FIELD(delta_float_basic_field, double)
+DEF_PADDED_FIELD(delta_float_padded_field, double)
 DEF_CLEAR_FIELD(
-    delta_float_basic_field
+    delta_float_padded_field
     , double
     , LOOP_WORLD
-    , get_delta_float_basic_field
+    , get_point_delta_float_padded_field
     , 0.0
     )
 
-Vector *alloc_vec_field() {
-    return malloc(sizeof(Vector)*field_dimensions(WORLD_WIDTH)*field_dimensions(WORLD_HEIGHT)*field_dimensions(WORLD_LENGTH));
-}
+#define DEF_ALLOC_PADDED_FIELD(FIELD, TYPE) \
+TYPE *alloc_##FIELD() { \
+    return malloc(sizeof(TYPE) \
+        *field_dimensions(WORLD_WIDTH) \
+        *field_dimensions(WORLD_HEIGHT) \
+        *field_dimensions(WORLD_LENGTH) \
+        ); \
+} \
+
+DEF_ALLOC_PADDED_FIELD(vec_field, Vector);
+DEF_ALLOC_PADDED_FIELD(scalar_field, double)
 
 void alloc_fields() {
     physical_map = malloc(sizeof(int)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
     electric_field = alloc_vec_field();
     current_field = malloc(sizeof(Vector)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
-    charge_field = malloc(sizeof(double)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
+    charge_field = alloc_scalar_field();
 
     //delta fields
     delta_vec_padded_field = alloc_vec_field();
     delta_vec_basic_field = malloc(sizeof(Vector)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
-    delta_float_basic_field = malloc(sizeof(double)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
+    delta_float_padded_field = alloc_scalar_field();
 
 }
 
@@ -131,5 +147,5 @@ void free_fields() {
     // delta fields
     free(delta_vec_padded_field);
     free(delta_vec_basic_field);
-    free(delta_float_basic_field);
+    free(delta_float_padded_field);
 }
