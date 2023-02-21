@@ -10,15 +10,6 @@
 
 void *process_field(void *arg);
 
-void clear_field(Vector *field) {
-    Vector *point = NULL;
-
-    LOOP_FIELD(i,j,k,
-        point = get_point_field(field, i, j, k);
-        *point = zero_vector();
-    )
-}
-
 double get_current_divergent(Vector *field, int i, int j, int k) {
     double current_divergence = 0;
 
@@ -44,17 +35,10 @@ void quit() {
     _is_running = 0;
 }
 
-static Vector *delta_field;
-
-
-void clear_delta_field() {
-    clear_field(delta_field);
-}
-
 void update_field(Vector *field) {
     LOOP_FIELD(i,j,k,
         Vector *point = get_point_field(field,i,j,k);
-        *point = vec_add(point, get_point_field(delta_field,i,j,k));
+        *point = vec_add(point, get_point_field(delta_vec_padded_field_data(),i,j,k));
     )
 
     LOOP_WORLD(i,j,k,
@@ -86,7 +70,7 @@ void init_fields() {
         set_tile_physical_map(i, j, k, TILETYPE_INSULATOR);
     )
 
-    clear_field(electric_field_data());
+    clear_electric_field();
 
     Vector *point = NULL;
 
@@ -106,10 +90,6 @@ void init_fields() {
         *point = scalar_mul(1.0/26.0, &normalized_point);
     )
 
-    // delta_field is expected to be initialized by caller be for use
-
-    delta_field = alloc_vec_field();
-
     // this thread applies the maxwell equations to the fields
 
     pthread_create(&process_field_thread, NULL, &process_field, NULL);
@@ -125,8 +105,6 @@ void destr_fields() {
 
     free_fields();
 
-    free(delta_field);
-
     printf("end of process\n");
 }
 
@@ -134,7 +112,7 @@ void guass_law_electric() {
 
     // clear delta_field
 
-    clear_delta_field();
+    clear_delta_vec_padded_field();
 
     // calculate how much the field would have to change
 
@@ -147,7 +125,7 @@ void guass_law_electric() {
 
         LOOP_KERNEL(u,v,w,
             Vector d_field = scalar_mul(divergence_delta*26.0, kernel_at(u,v,w));
-            Vector *point = get_field_convolve(delta_field, i, j, k, u, v, w);
+            Vector *point = get_field_convolve(delta_vec_padded_field_data(), i, j, k, u, v, w);
             *point = vec_add(point, &d_field);
         )
     )
@@ -163,7 +141,7 @@ void update_current() {
     Vector *point = NULL;
 
     LOOP_WORLD(i, j, k,
-        point = get_node_field(delta_field, i, j, k);
+        point = get_node_field(delta_vec_padded_field_data(), i, j, k);
         *point = zero_vector();
     )
 
@@ -175,12 +153,12 @@ void update_current() {
         Vector sum = vec_add(&electric_term, &resistance_term);
         Vector result = scalar_mul(MOVABLE_PARTICLE_CHARGE/MOVABLE_PARTICLE_MASS, &sum);
 
-        point = get_node_field(delta_field, i, j, k);
+        point = get_node_field(delta_vec_padded_field_data(), i, j, k);
         *point = result;
     )
 
     LOOP_WORLD(i, j, k,
-        Vector *delta = get_node_field(delta_field, i, j, k);
+        Vector *delta = get_node_field(delta_vec_padded_field_data(), i, j, k);
         point = get_current_field(i, j, k);
         *point = vec_add(point, delta);
     )
