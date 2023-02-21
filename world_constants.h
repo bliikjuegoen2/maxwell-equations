@@ -16,11 +16,12 @@ extern const int TILETYPE_INSULATOR;
 extern const double MOVABLE_PARTICLE_DENSITY;
 extern const double MOVABLE_PARTICLE_CHARGE;
 extern const double MOVABLE_PARTICLE_MASS;
-extern const double WIRE_RESISTANCE;
+// extern const double WIRE_RESISTANCE;
 
 // physical constants
 extern const double EPSILON_0;
 
 double charge_of(int tile_type);
+double resistance_of(int tile_type);
 
 #endif // !MAXWELL_EQUARIONS_WORLD_CONSTANTS_H

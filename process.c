@@ -159,7 +159,7 @@ void guass_law_electric() {
     // calculate how much the field would have to change
 
     LOOP_WORLD(i,j,k,
-        double charge_density = charge_of(get_tile_physical_map(i,j,k));
+        double charge_density = charge_of(get_tile_physical_map(i,j,k)) + get_tile_charge_field(i,j,k);
         double predicted_divergence = charge_density/EPSILON_0;
         double current_divergence = get_current_divergent(electric_field_data(),i,j,k);
 
@@ -185,14 +185,21 @@ void update_current() {
     clear_delta_vec_basic_field();
 
     LOOP_WORLD(i, j, k,
+        double R = resistance_of(get_tile_physical_map(i, j, k));
+        point = get_delta_vec_basic_field(i, j, k);
+
+        if(R == -1) {
+            *point = zero_vector();
+            continue;
+        }
+
         Vector *E = get_node_electric_field(i, j, k);
         Vector *I = get_current_field(i, j, k);
         Vector electric_term = scalar_mul(MOVABLE_PARTICLE_DENSITY, E);
-        Vector resistance_term = scalar_mul(-WIRE_RESISTANCE, I);
+        Vector resistance_term = scalar_mul(-R, I);
         Vector sum = vec_add(&electric_term, &resistance_term);
         Vector result = scalar_mul(MOVABLE_PARTICLE_CHARGE/MOVABLE_PARTICLE_MASS, &sum);
 
-        point = get_delta_vec_basic_field(i, j, k);
         *point = result;
     )
 
