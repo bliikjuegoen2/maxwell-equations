@@ -67,6 +67,8 @@ DEF_CLEAR_FIELD(
     , zero_vector()
     )
 DEF_BASIC_FIELD(current_field, Vector)
+DEF_BASIC_FIELD(charge_field, double)
+DEF_SETGET_FIELD(charge_field, double)
 
 //temporary values
 DEF_PADDED_FIELD(delta_vec_padded_field, Vector)
@@ -82,6 +84,13 @@ DEF_CLEAR_FIELD(
     , Vector
     , get_delta_vec_basic_field
     , zero_vector()
+    )
+DEF_BASIC_FIELD(delta_float_basic_field, double)
+DEF_CLEAR_FIELD(
+    delta_float_basic_field
+    , double
+    , get_delta_float_basic_field
+    , 0.0
     )
 
 Vector *alloc_vec_field() {
