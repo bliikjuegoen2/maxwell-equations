@@ -2,6 +2,7 @@
 #include "world_constants.h"
 #include "accessor.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 #define DEF_SETGET_FIELD(FIELD_NAME, TYPE) \
 \
@@ -46,11 +47,11 @@ TYPE *FIELD_NAME##_data() {\
 }\
 
 
-#define DEF_CLEAR_FIELD(FIELD, TYPE, GETTER, ZERO) \
+#define DEF_CLEAR_FIELD(FIELD, TYPE, LOOP, GETTER, ZERO) \
 void clear_##FIELD() { \
     TYPE *point = NULL; \
     \
-    LOOP_FIELD(i,j,k, \
+    LOOP(i,j,k, \
         point = GETTER(i, j, k); \
         *point = ZERO; \
     ) \
@@ -63,18 +64,27 @@ DEF_PADDED_FIELD(electric_field, Vector)
 DEF_CLEAR_FIELD(
     electric_field
     , Vector
+    , LOOP_FIELD
     , get_point_electric_field
     , zero_vector()
     )
 DEF_BASIC_FIELD(current_field, Vector)
 DEF_BASIC_FIELD(charge_field, double)
 DEF_SETGET_FIELD(charge_field, double)
+DEF_CLEAR_FIELD(
+    charge_field
+    , double
+    , LOOP_WORLD
+    , get_charge_field
+    , 0.0
+    )
 
 //temporary values
 DEF_PADDED_FIELD(delta_vec_padded_field, Vector)
 DEF_CLEAR_FIELD(
     delta_vec_padded_field
     , Vector
+    , LOOP_FIELD
     , get_point_delta_vec_padded_field
     , zero_vector()
     )
@@ -82,6 +92,7 @@ DEF_BASIC_FIELD(delta_vec_basic_field, Vector)
 DEF_CLEAR_FIELD(
     delta_vec_basic_field
     , Vector
+    , LOOP_WORLD
     , get_delta_vec_basic_field
     , zero_vector()
     )
@@ -89,6 +100,7 @@ DEF_BASIC_FIELD(delta_float_basic_field, double)
 DEF_CLEAR_FIELD(
     delta_float_basic_field
     , double
+    , LOOP_WORLD
     , get_delta_float_basic_field
     , 0.0
     )
@@ -101,17 +113,23 @@ void alloc_fields() {
     physical_map = malloc(sizeof(int)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
     electric_field = alloc_vec_field();
     current_field = malloc(sizeof(Vector)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
+    charge_field = malloc(sizeof(double)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
 
     //delta fields
     delta_vec_padded_field = alloc_vec_field();
     delta_vec_basic_field = malloc(sizeof(Vector)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
+    delta_float_basic_field = malloc(sizeof(double)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
+
 }
 
 void free_fields() {
     free(physical_map);
     free(electric_field);
     free(current_field);
+    free(charge_field);
 
     // delta fields
     free(delta_vec_padded_field);
+    free(delta_vec_basic_field);
+    free(delta_float_basic_field);
 }

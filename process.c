@@ -10,6 +10,12 @@
 
 void *process_field(void *arg);
 
+#define INIT_SCALAR_KERNEL(GETTER, AXIS) \
+\
+LOOP_KERNEL(i, j, k, \
+    *GETTER(i, j, k) = (AXIS - 1.0) / 9.0; \
+)\
+
 // game state
 
 static int _is_running;
@@ -29,7 +35,7 @@ double get_current_divergent(Vector *field, int i, int j, int k) {
 
     LOOP_KERNEL(u,v,w,
         double delta_dot = dot(
-            kernel_at(u,v,w), 
+            kernel_vec_at(u,v,w), 
             get_field_convolve(field,
                 i,j,k,
                 u,v,w));
@@ -89,14 +95,23 @@ void init_fields() {
 
     point = NULL;
 
+    clear_charge_field();
+
+    // vec kernel
     LOOP_KERNEL(i, j, k, 
-        point = kernel_at(i, j, k);
+        point = kernel_vec_at(i, j, k);
         point->x = i - 1;
         point->y = j - 1;
         point->z = k - 1;
         Vector normalized_point = normalize(point);
         *point = scalar_mul(1.0/26.0, &normalized_point);
     )
+
+    // various scalar kernels
+
+    INIT_SCALAR_KERNEL(kernel_scalar_x_at, i)
+    INIT_SCALAR_KERNEL(kernel_scalar_y_at, j)
+    INIT_SCALAR_KERNEL(kernel_scalar_z_at, k)
 
     // this thread applies the maxwell equations to the fields
 
@@ -134,7 +149,7 @@ void guass_law_electric() {
         double divergence_delta = predicted_divergence - current_divergence;
 
         LOOP_KERNEL(u,v,w,
-            Vector d_field = scalar_mul(divergence_delta*26.0, kernel_at(u,v,w));
+            Vector d_field = scalar_mul(divergence_delta*26.0, kernel_vec_at(u,v,w));
             Vector *point = get_field_convolve(delta_vec_padded_field_data(), i, j, k, u, v, w);
             *point = vec_add(point, &d_field);
         )
@@ -171,10 +186,32 @@ void update_current() {
     )
 }
 
+void update_charge() {
+    Vector *point = NULL;
+
+    clear_delta_float_basic_field();
+
+    LOOP_WORLD(i, j, k,
+        point = get_current_field(i,j,k);
+
+        LOOP_KERNEL(u,v,w,
+            *get_delta_float_basic_field(i + u - 1, j + v - 1, k + w - 1) 
+                = point->x * *kernel_scalar_x_at(u, v, w)
+                + point->y * *kernel_scalar_y_at(u, v, w)
+                + point->z * *kernel_scalar_z_at(u, v, w);
+        )
+    )
+
+    LOOP_WORLD(i, j, k,
+        *get_charge_field(i, j, k) += *get_delta_float_basic_field(i,j,k);
+    )
+}
+
 void *process_field(void *arg) {
     while(is_running()) {
         guass_law_electric();
         update_current();
+        update_charge();
     }
 
     pthread_exit(NULL);

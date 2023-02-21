@@ -5,7 +5,6 @@
 extern int is_running();
 extern void quit();
 
-extern void guass_law_electric();
 extern void init_fields();
 void destr_fields();
 

@@ -8,6 +8,7 @@
         "process.h": "c",
         "kernel.h": "c",
         "stdbool.h": "c",
-        "world_constants.h": "c"
+        "world_constants.h": "c",
+        "accessor.h": "c"
     }
 }
