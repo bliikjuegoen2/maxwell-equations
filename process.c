@@ -10,6 +10,20 @@
 
 void *process_field(void *arg);
 
+// game state
+
+static int _is_running;
+
+int is_running() {
+    return _is_running;
+}
+
+void quit() {
+    _is_running = 0;
+}
+
+// multi variable calculus functions
+
 double get_current_divergent(Vector *field, int i, int j, int k) {
     double current_divergence = 0;
 
@@ -25,15 +39,7 @@ double get_current_divergent(Vector *field, int i, int j, int k) {
     return current_divergence;
 }
 
-static int _is_running;
-
-int is_running() {
-    return _is_running;
-}
-
-void quit() {
-    _is_running = 0;
-}
+// update field using delta field
 
 void update_field(Vector *field) {
     LOOP_FIELD(i,j,k,
@@ -58,6 +64,8 @@ void update_field(Vector *field) {
 }
 
 pthread_t process_field_thread;
+
+// constructor and destructor
 
 // run at the start of the program
 void init_fields() {
@@ -108,6 +116,8 @@ void destr_fields() {
     printf("end of process\n");
 }
 
+// field functions
+
 void guass_law_electric() {
 
     // clear delta_field
@@ -140,10 +150,7 @@ void guass_law_electric() {
 void update_current() {
     Vector *point = NULL;
 
-    LOOP_WORLD(i, j, k,
-        point = get_node_field(delta_vec_padded_field_data(), i, j, k);
-        *point = zero_vector();
-    )
+    clear_delta_vec_basic_field();
 
     LOOP_WORLD(i, j, k,
         Vector *E = get_node_electric_field(i, j, k);
@@ -153,12 +160,12 @@ void update_current() {
         Vector sum = vec_add(&electric_term, &resistance_term);
         Vector result = scalar_mul(MOVABLE_PARTICLE_CHARGE/MOVABLE_PARTICLE_MASS, &sum);
 
-        point = get_node_field(delta_vec_padded_field_data(), i, j, k);
+        point = get_delta_vec_basic_field(i, j, k);
         *point = result;
     )
 
     LOOP_WORLD(i, j, k,
-        Vector *delta = get_node_field(delta_vec_padded_field_data(), i, j, k);
+        Vector *delta = get_delta_vec_basic_field(i, j, k);
         point = get_current_field(i, j, k);
         *point = vec_add(point, delta);
     )

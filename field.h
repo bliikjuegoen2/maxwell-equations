@@ -40,6 +40,8 @@ DECL_BASIC_FIELD(current_field, Vector)
 // temporary values
 DECL_PADDED_FIELD(delta_vec_padded_field, Vector)
 DECL_CLEAR_FIELD(delta_vec_padded_field)
+DECL_BASIC_FIELD(delta_vec_basic_field, Vector)
+DECL_CLEAR_FIELD(delta_vec_basic_field)
 
 
 // constructors and destructors
