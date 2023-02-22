@@ -159,7 +159,13 @@ void guass_law_electric() {
     // calculate how much the field would have to change
 
     LOOP_WORLD(i,j,k,
-        double charge_density = charge_of(get_tile_physical_map(i,j,k)) + *get_node_charge_field(i,j,k);
+        double charge_density = charge_of(get_tile_physical_map(i,j,k));
+
+        if(charge_density == 0) {
+            // put bounds on the movable charge
+            charge_density = *get_node_charge_field(i,j,k);
+        }
+
         double predicted_divergence = charge_density/EPSILON_0;
         double current_divergence = get_current_divergent(electric_field_data(),i,j,k);
 
@@ -219,15 +225,35 @@ void update_charge() {
         point = get_current_field(i,j,k);\
 
         LOOP_KERNEL(u,v,w,
-            *get_node_delta_float_padded_field(i + u - 1, j + v - 1, k + w - 1) 
+            *get_point_delta_float_padded_field(i*2+u, j*2+v, k*2+w) 
                 += point->x * *kernel_scalar_x_at(u, v, w)
                 + point->y * *kernel_scalar_y_at(u, v, w)
                 + point->z * *kernel_scalar_z_at(u, v, w);
         )
     )
 
+    LOOP_FIELD(i, j, k,
+        *get_point_charge_field(i, j, k) += *get_point_delta_float_padded_field(i,j,k);
+    )
+
     LOOP_WORLD(i, j, k,
-        *get_node_charge_field(i, j, k) += *get_node_delta_float_padded_field(i,j,k);
+        double average = 0.0;
+        
+        LOOP_KERNEL(u,v,w,
+            if(u == 0 && v == 0 && w == 0) {
+                continue;
+            }
+            average += *get_point_charge_field(i*2+u, j*2+v, k*2+w);
+        )
+
+        average /= 26.0;
+
+        if(average > 1.0)
+            average = 1.0;
+        else if(average < -1.0)
+            average = -1.0;
+
+        *get_node_charge_field(i, j, k) = average;
     )
 }
 
