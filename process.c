@@ -209,6 +209,26 @@ void guass_law_magnetic() {
     )
 }
 
+void faraday_law() {
+
+    // calculate how much the field would have to change
+
+    LOOP_WORLD(i,j,k,
+
+        Vector predicted_curl = scalar_mul(-1, get_magnetic_field_delta(i,j,k));
+        Vector current_curl = get_current_curl(electric_field_data(),i,j,k);
+
+        Vector curl_delta = vec_sub(&predicted_curl, &current_curl);
+        Vector curl_delta_scaled = scalar_mul(13.0, &curl_delta);
+
+        LOOP_KERNEL(u,v,w,
+            Vector d_field = cross(&curl_delta_scaled, kernel_vec_at(u,v,w));
+            Vector *point = get_field_convolve(delta_vec_padded_field_data(), i, j, k, u, v, w);
+            *point = vec_add(point, &d_field);
+        )
+    )
+}
+
 void ampere_law() {
 
     // calculate how much the field would have to change
@@ -224,9 +244,7 @@ void ampere_law() {
         Vector current_curl = get_current_curl(magnetic_field_data(),i,j,k);
 
         Vector curl_delta = vec_sub(&predicted_curl, &current_curl);
-        Vector curl_delta_scaled = scalar_mul(26.0, &curl_delta);
-
-        // if(electric_field_delta_term.x != 0 || electric_field_delta_term.y != 0 || electric_field_delta_term.x)
+        Vector curl_delta_scaled = scalar_mul(13.0, &curl_delta);
 
         LOOP_KERNEL(u,v,w,
             Vector d_field = cross(&curl_delta_scaled, kernel_vec_at(u,v,w));
@@ -319,6 +337,7 @@ void *process_field(void *arg) {
         // electric field
         clear_delta_vec_padded_field();
         guass_law_electric();
+        faraday_law();
         update_field(electric_field_data(), get_electric_field_delta);
         // magnetic field
         clear_delta_vec_padded_field();
