@@ -11,6 +11,12 @@ extern const int TILETYPE_WIRE;
 extern const int TILETYPE_POSITIVE_CHARGE;
 extern const int TILETYPE_NEGATIVE_CHARGE;
 extern const int TILETYPE_INSULATOR;
+extern const int TILETYPE_UP_CURRENT;
+extern const int TILETYPE_DOWN_CURRENT;
+extern const int TILETYPE_LEFT_CURRENT;
+extern const int TILETYPE_RIGHT_CURRENT;
+extern const int TILETYPE_FORWARD_CURRENT;
+extern const int TILETYPE_BACKWARD_CURRENT;
 
 // properties of wire
 // extern const double MOVABLE_PARTICLE_DENSITY;

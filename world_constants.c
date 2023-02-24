@@ -10,6 +10,12 @@ const int TILETYPE_WIRE = 0;
 const int TILETYPE_POSITIVE_CHARGE = 1;
 const int TILETYPE_NEGATIVE_CHARGE = 2;
 const int TILETYPE_INSULATOR = 3;
+const int TILETYPE_UP_CURRENT = 4;
+const int TILETYPE_DOWN_CURRENT = 5;
+const int TILETYPE_LEFT_CURRENT = 6;
+const int TILETYPE_RIGHT_CURRENT = 7;
+const int TILETYPE_FORWARD_CURRENT = 8;
+const int TILETYPE_BACKWARD_CURRENT = 9;
 
 // properties of wire
 // const double MOVABLE_PARTICLE_DENSITY = 10;

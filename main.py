@@ -113,6 +113,18 @@ class Game:
             self.current_tile_type = fields.TILETYPE_NEGATIVE_CHARGE
         if key_pressed[pg.K_3]:
             self.current_tile_type = fields.TILETYPE_INSULATOR
+        if key_pressed[pg.K_4]:
+            self.current_tile_type = fields.TILETYPE_UP_CURRENT
+        if key_pressed[pg.K_5]:
+            self.current_tile_type = fields.TILETYPE_DOWN_CURRENT
+        if key_pressed[pg.K_6]:
+            self.current_tile_type = fields.TILETYPE_LEFT_CURRENT
+        if key_pressed[pg.K_7]:
+            self.current_tile_type = fields.TILETYPE_RIGHT_CURRENT
+        if key_pressed[pg.K_8]:
+            self.current_tile_type = fields.TILETYPE_FORWARD_CURRENT
+        if key_pressed[pg.K_9]:
+            self.current_tile_type = fields.TILETYPE_BACKWARD_CURRENT
         if key_pressed[pg.K_ESCAPE]:
             self.mode = MODE_NORMAL
         if key_pressed[pg.K_e]:
