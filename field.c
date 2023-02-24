@@ -77,6 +77,7 @@ DEF_CLEAR_FIELD(
     , get_point_electric_field
     , zero_vector()
     )
+DEF_BASIC_FIELD(electric_field_delta, Vector)
 DEF_PADDED_FIELD(magnetic_field, Vector)
 DEF_CLEAR_FIELD(
     magnetic_field
@@ -85,6 +86,7 @@ DEF_CLEAR_FIELD(
     , get_point_electric_field
     , zero_vector()
     )
+DEF_BASIC_FIELD(magnetic_field_delta, Vector)
 // DEF_BASIC_FIELD(current_field, Vector)
 // DEF_PADDED_FIELD(charge_field, double)
 // DEF_CLEAR_FIELD(
@@ -136,7 +138,9 @@ DEF_ALLOC_PADDED_FIELD(scalar_field, double)
 void alloc_fields() {
     physical_map = malloc(sizeof(int)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
     electric_field = alloc_vec_field();
+    electric_field_delta = malloc(sizeof(Vector)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
     magnetic_field = alloc_vec_field();
+    magnetic_field_delta = malloc(sizeof(Vector)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
     // current_field = malloc(sizeof(Vector)*WORLD_WIDTH*WORLD_HEIGHT*WORLD_LENGTH);
     // charge_field = alloc_scalar_field();
 
@@ -150,7 +154,9 @@ void alloc_fields() {
 void free_fields() {
     free(physical_map);
     free(electric_field);
+    free(electric_field_delta);
     free(magnetic_field);
+    free(magnetic_field_delta);
     // free(current_field);
     // free(charge_field);
 

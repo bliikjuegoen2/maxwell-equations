@@ -79,7 +79,7 @@ Vector get_current_curl(Vector *field, int i, int j, int k) {
 
 // update field using delta field
 
-void update_field(Vector *field) {
+void update_field(Vector *field, Vector *(*get_delta)(int i, int j, int k)) {
     LOOP_FIELD(i,j,k,
         Vector *point = get_point_field(field,i,j,k);
         *point = vec_add(point, get_point_field(delta_vec_padded_field_data(),i,j,k));
@@ -96,6 +96,8 @@ void update_field(Vector *field) {
         )
 
         average = scalar_mul(1.0/26.0, &average);
+        
+        *get_delta(i, j, k) = vec_sub(&average, get_node_field(field,i,j,k));
 
         *get_node_field(field,i,j,k) = average;
     )
@@ -172,10 +174,6 @@ void destr_fields() {
 
 void guass_law_electric() {
 
-    // clear delta_field
-
-    clear_delta_vec_padded_field();
-
     // calculate how much the field would have to change
 
     LOOP_WORLD(i,j,k,
@@ -192,21 +190,26 @@ void guass_law_electric() {
             *point = vec_add(point, &d_field);
         )
     )
-
-    // apply the field
-
-    update_field(electric_field_data());
 }
 
-// this is the optimal for curl to reach equilibrium
-#define CURL_SCALE_VALUE 0.3 
+void guass_law_magnetic() {
 
+    // calculate how much the field would have to change
+
+    LOOP_WORLD(i,j,k,
+        double current_divergence = get_current_divergent(magnetic_field_data(),i,j,k);
+
+        double divergence_delta = -current_divergence;
+
+        LOOP_KERNEL(u,v,w,
+            Vector d_field = scalar_mul(divergence_delta*26.0, kernel_vec_at(u,v,w));
+            Vector *point = get_field_convolve(delta_vec_padded_field_data(), i, j, k, u, v, w);
+            *point = vec_add(point, &d_field);
+        )
+    )
+}
 
 void ampere_law() {
-
-    // clear delta_field
-
-    clear_delta_vec_padded_field();
 
     // calculate how much the field would have to change
 
@@ -215,11 +218,15 @@ void ampere_law() {
         Vector current_density_adjusted = scalar_mul(-1, &current_density); // so that the curl can comply with the right hand rule
 
 
-        Vector predicted_curl = scalar_mul(MU_0, &current_density_adjusted);
+        Vector current_term = scalar_mul(MU_0, &current_density_adjusted);
+        Vector electric_field_delta_term = scalar_mul(MU_0*EPSILON_0, get_electric_field_delta(i,j,k));
+        Vector predicted_curl = vec_add(&current_term, &electric_field_delta_term);
         Vector current_curl = get_current_curl(magnetic_field_data(),i,j,k);
 
         Vector curl_delta = vec_sub(&predicted_curl, &current_curl);
-        Vector curl_delta_scaled = scalar_mul(26.0 * (3.0 - CURL_SCALE_VALUE) / (2.0 + CURL_SCALE_VALUE), &curl_delta);\
+        Vector curl_delta_scaled = scalar_mul(26.0, &curl_delta);
+
+        // if(electric_field_delta_term.x != 0 || electric_field_delta_term.y != 0 || electric_field_delta_term.x)
 
         LOOP_KERNEL(u,v,w,
             Vector d_field = cross(&curl_delta_scaled, kernel_vec_at(u,v,w));
@@ -227,10 +234,6 @@ void ampere_law() {
             *point = vec_add(point, &d_field);
         )
     )
-
-    // apply the field
-
-    update_field(magnetic_field_data());
 }
 
 
@@ -313,8 +316,15 @@ void ampere_law() {
 
 void *process_field(void *arg) {
     while(is_running()) {
+        // electric field
+        clear_delta_vec_padded_field();
         guass_law_electric();
+        update_field(electric_field_data(), get_electric_field_delta);
+        // magnetic field
+        clear_delta_vec_padded_field();
+        guass_law_magnetic();
         ampere_law();
+        update_field(magnetic_field_data(), get_magnetic_field_delta);
         // update_current();
         // update_charge();
     }
