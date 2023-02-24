@@ -105,14 +105,14 @@ void init_fields() {
 
     Vector *point = NULL;
 
-    LOOP_WORLD(i,j,k,
-        point = get_current_field(i, j, k);
-        *point = zero_vector();
-    )
+    // LOOP_WORLD(i,j,k,
+    //     point = get_current_field(i, j, k);
+    //     *point = zero_vector();
+    // )
 
-    point = NULL;
+    // point = NULL;
 
-    clear_charge_field();
+    // clear_charge_field();
 
     // vec kernel
     LOOP_KERNEL(i, j, k, 
@@ -165,11 +165,6 @@ void guass_law_electric() {
     LOOP_WORLD(i,j,k,
         double charge_density = charge_of(get_tile_physical_map(i,j,k));
 
-        if(charge_density == 0) {
-            // put bounds on the movable charge
-            charge_density = *get_node_charge_field(i,j,k);
-        }
-
         double predicted_divergence = charge_density/EPSILON_0;
         double current_divergence = get_current_divergent(electric_field_data(),i,j,k);
 
@@ -189,86 +184,86 @@ void guass_law_electric() {
 
 
 // (p/m)*(nE + I x B - r I)
-void update_current() {
-    Vector *point = NULL;
+// void update_current() {
+//     Vector *point = NULL;
 
-    clear_delta_vec_basic_field();
+//     clear_delta_vec_basic_field();
 
-    LOOP_WORLD(i, j, k,
-        double R = resistance_of(get_tile_physical_map(i, j, k));
-        point = get_delta_vec_basic_field(i, j, k);
+//     LOOP_WORLD(i, j, k,
+//         double R = resistance_of(get_tile_physical_map(i, j, k));
+//         point = get_delta_vec_basic_field(i, j, k);
 
-        if(R == -1) {
-            *point = zero_vector();
-            continue;
-        }
+//         if(R == -1) {
+//             *point = zero_vector();
+//             continue;
+//         }
 
-        Vector *E = get_node_electric_field(i, j, k);
-        Vector *I = get_current_field(i, j, k);
-        Vector electric_term = scalar_mul(MOVABLE_PARTICLE_DENSITY, E);
-        Vector resistance_term = scalar_mul(-R, I);
-        Vector sum = vec_add(&electric_term, &resistance_term);
-        Vector result = scalar_mul(MOVABLE_PARTICLE_CHARGE/MOVABLE_PARTICLE_MASS, &sum);
+//         Vector *E = get_node_electric_field(i, j, k);
+//         Vector *I = get_current_field(i, j, k);
+//         Vector electric_term = scalar_mul(MOVABLE_PARTICLE_DENSITY, E);
+//         Vector resistance_term = scalar_mul(-R, I);
+//         Vector sum = vec_add(&electric_term, &resistance_term);
+//         Vector result = scalar_mul(MOVABLE_PARTICLE_CHARGE/MOVABLE_PARTICLE_MASS, &sum);
 
-        *point = result;
-    )
+//         *point = result;
+//     )
 
-    LOOP_WORLD(i, j, k,
-        Vector *delta = get_delta_vec_basic_field(i, j, k);
-        point = get_current_field(i, j, k);
-        *point = vec_add(point, delta);
-    )
-}
+//     LOOP_WORLD(i, j, k,
+//         Vector *delta = get_delta_vec_basic_field(i, j, k);
+//         point = get_current_field(i, j, k);
+//         *point = vec_add(point, delta);
+//     )
+// }
 
-void update_charge() {
-    Vector *point = NULL;
+// void update_charge() {
+//     Vector *point = NULL;
 
-    clear_delta_vec_padded_field();
+//     clear_delta_vec_padded_field();
 
-    LOOP_WORLD(i, j, k,
-        point = get_current_field(i,j,k);
+//     LOOP_WORLD(i, j, k,
+//         point = get_current_field(i,j,k);
 
-        LOOP_KERNEL(u,v,w,
-            *get_point_delta_float_padded_field(i*2+u, j*2+v, k*2+w) 
-                += point->x * *kernel_scalar_x_at(u, v, w)
-                + point->y * *kernel_scalar_y_at(u, v, w)
-                + point->z * *kernel_scalar_z_at(u, v, w); 
+//         LOOP_KERNEL(u,v,w,
+//             *get_point_delta_float_padded_field(i*2+u, j*2+v, k*2+w) 
+//                 += point->x * *kernel_scalar_x_at(u, v, w)
+//                 + point->y * *kernel_scalar_y_at(u, v, w)
+//                 + point->z * *kernel_scalar_z_at(u, v, w); 
             
-            *get_point_delta_float_padded_field(i + u - 1, j + v - 1, k + w - 1) 
-                += *get_node_charge_field(i, j, k) * CHARGE_TRANSFER_COEF * *kernel_scalar_disperse_at(u,v,w);
-        )
-    )
+//             *get_point_delta_float_padded_field(i + u - 1, j + v - 1, k + w - 1) 
+//                 += *get_node_charge_field(i, j, k) * CHARGE_TRANSFER_COEF * *kernel_scalar_disperse_at(u,v,w);
+//         )
+//     )
 
-    LOOP_FIELD(i, j, k,
-        *get_point_charge_field(i, j, k) += *get_point_delta_float_padded_field(i,j,k);
-    )
+//     LOOP_FIELD(i, j, k,
+//         *get_point_charge_field(i, j, k) += *get_point_delta_float_padded_field(i,j,k);
+//     )
 
-    LOOP_WORLD(i, j, k,
-        double average = 0.0;
+//     LOOP_WORLD(i, j, k,
+//         double average = 0.0;
         
-        LOOP_KERNEL(u,v,w,
-            if(u == 0 && v == 0 && w == 0) {
-                continue;
-            }
-            average += *get_point_charge_field(i*2+u, j*2+v, k*2+w);
-        )
+//         LOOP_KERNEL(u,v,w,
+//             if(u == 0 && v == 0 && w == 0) {
+//                 continue;
+//             }
+//             average += *get_point_charge_field(i*2+u, j*2+v, k*2+w);
+//         )
 
-        average /= 26.0;
+//         average /= 26.0;
 
-        if(average > 1.0)
-            average = 1.0;
-        else if(average < -1.0)
-            average = -1.0;
+//         if(average > 1.0)
+//             average = 1.0;
+//         else if(average < -1.0)
+//             average = -1.0;
 
-        *get_node_charge_field(i, j, k) = average;
-    )
-}
+//         *get_node_charge_field(i, j, k) = average;
+//     )
+// }
 
 void *process_field(void *arg) {
     while(is_running()) {
         guass_law_electric();
-        update_current();
-        update_charge();
+        // update_current();
+        // update_charge();
     }
 
     pthread_exit(NULL);

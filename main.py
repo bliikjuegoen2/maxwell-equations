@@ -35,16 +35,16 @@ VEC_RIGHT = 5
 # Visual Modes
 MODE_NORMAL = 0
 MODE_ELECTRIC_FIELD = 1
-MODE_CURRENT = 2
-MODE_CHARGE = 3
+# MODE_CURRENT = 2
+# MODE_CHARGE = 3
 
 mode_to_vec_field = {
     MODE_ELECTRIC_FIELD: fields.get_node_electric_field
-    , MODE_CURRENT: fields.get_current_field
+    # , MODE_CURRENT: fields.get_current_field
 }
 
 mode_to_scalar_field = {
-    MODE_CHARGE: fields.get_node_charge_field
+    # MODE_CHARGE: fields.get_node_charge_field
 }
 
 # Scientific Constants
@@ -117,10 +117,10 @@ class Game:
             self.mode = MODE_NORMAL
         if key_pressed[pg.K_e]:
             self.mode = MODE_ELECTRIC_FIELD
-        if key_pressed[pg.K_i]:
-            self.mode = MODE_CURRENT
-        if key_pressed[pg.K_q]:
-            self.mode = MODE_CHARGE
+        # if key_pressed[pg.K_i]:
+        #     self.mode = MODE_CURRENT
+        # if key_pressed[pg.K_q]:
+        #     self.mode = MODE_CHARGE
 
         
         mouse_pressed = pg.mouse.get_pressed()
