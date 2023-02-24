@@ -21,36 +21,52 @@ double get_scalar(double *x) {
 
 // constructors
 
+Vector new_vector(double x, double y, double z) {
+    Vector vec;
+    vec.x = x;
+    vec.y = y; 
+    vec.z = z;
+    return vec;
+}
+
 Vector zero_vector() {
-    Vector r;
-    r.x = 0;
-    r.y = 0;
-    r.z = 0;
-    return r;
+    return new_vector(0, 0, 0);
 }
 
 // lin alg operations
 
 Vector scalar_mul(double c, Vector *v) {
-    Vector r;
-    r.x = c*v->x;
-    r.y = c*v->y;
-    r.z = c*v->z;
-    return r;
+    return new_vector(
+        c*v->x 
+        , c*v->y 
+        , c*v->z
+    );
 }
 
 Vector vec_add(Vector *a, Vector *b) {
-    Vector r;
+    return new_vector(
+    a->x + b->x
+    , a->y + b->y
+    , a->z + b->z
+    );
+}
 
-    r.x = a->x + b->x;
-    r.y = a->y + b->y;
-    r.z = a->z + b->z;
 
-    return r;
+Vector vec_sub(Vector *a, Vector *b) {
+    Vector neg_b = scalar_mul(-1, b);
+    return vec_add(a, &neg_b);
 }
 
 double dot(Vector *a, Vector *b) {
     return a->x * b->x + a->y * b->y + a->z * b->z;
+}
+
+Vector cross(Vector *a, Vector *b) {
+    return new_vector(
+        a->y * b->z - a->z * b->y
+        , a->z * b->x - a->x * b->z
+        , a->x * b->y - a->y * b->x
+    );
 }
 
 

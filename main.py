@@ -35,11 +35,13 @@ VEC_RIGHT = 5
 # Visual Modes
 MODE_NORMAL = 0
 MODE_ELECTRIC_FIELD = 1
+MODE_MAGNETIC_FIELD = 2
 # MODE_CURRENT = 2
 # MODE_CHARGE = 3
 
 mode_to_vec_field = {
     MODE_ELECTRIC_FIELD: fields.get_node_electric_field
+    , MODE_MAGNETIC_FIELD: fields.get_node_magnetic_field
     # , MODE_CURRENT: fields.get_current_field
 }
 
@@ -129,6 +131,8 @@ class Game:
             self.mode = MODE_NORMAL
         if key_pressed[pg.K_e]:
             self.mode = MODE_ELECTRIC_FIELD
+        if key_pressed[pg.K_b]:
+            self.mode = MODE_MAGNETIC_FIELD
         # if key_pressed[pg.K_i]:
         #     self.mode = MODE_CURRENT
         # if key_pressed[pg.K_q]:

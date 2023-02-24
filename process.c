@@ -62,6 +62,21 @@ double get_current_divergent(Vector *field, int i, int j, int k) {
     return current_divergence;
 }
 
+Vector get_current_curl(Vector *field, int i, int j, int k) {
+    Vector current_curl = zero_vector();
+
+    LOOP_KERNEL(u,v,w,
+        Vector delta_cross = cross(
+            kernel_vec_at(u,v,w), 
+            get_field_convolve(field,
+                i,j,k,
+                u,v,w));
+        current_curl = vec_add(&current_curl, &delta_cross);
+    )
+
+    return current_curl;
+}
+
 // update field using delta field
 
 void update_field(Vector *field) {
@@ -102,6 +117,7 @@ void init_fields() {
     )
 
     clear_electric_field();
+    clear_magnetic_field();
 
     Vector *point = NULL;
 
@@ -181,6 +197,42 @@ void guass_law_electric() {
 
     update_field(electric_field_data());
 }
+
+// this is the optimal for curl to reach equilibrium
+#define CURL_SCALE_VALUE 0.3 
+
+
+void ampere_law() {
+
+    // clear delta_field
+
+    clear_delta_vec_padded_field();
+
+    // calculate how much the field would have to change
+
+    LOOP_WORLD(i,j,k,
+        Vector current_density = current_of(get_tile_physical_map(i,j,k));
+        Vector current_density_adjusted = scalar_mul(-1, &current_density); // so that the curl can comply with the right hand rule
+
+
+        Vector predicted_curl = scalar_mul(MU_0, &current_density_adjusted);
+        Vector current_curl = get_current_curl(magnetic_field_data(),i,j,k);
+
+        Vector curl_delta = vec_sub(&predicted_curl, &current_curl);
+        Vector curl_delta_scaled = scalar_mul(26.0 * (3.0 - CURL_SCALE_VALUE) / (2.0 + CURL_SCALE_VALUE), &curl_delta);\
+
+        LOOP_KERNEL(u,v,w,
+            Vector d_field = cross(&curl_delta_scaled, kernel_vec_at(u,v,w));
+            Vector *point = get_field_convolve(delta_vec_padded_field_data(), i, j, k, u, v, w);
+            *point = vec_add(point, &d_field);
+        )
+    )
+
+    // apply the field
+
+    update_field(magnetic_field_data());
+}
+
 
 
 // (p/m)*(nE + I x B - r I)
@@ -262,6 +314,7 @@ void guass_law_electric() {
 void *process_field(void *arg) {
     while(is_running()) {
         guass_law_electric();
+        ampere_law();
         // update_current();
         // update_charge();
     }

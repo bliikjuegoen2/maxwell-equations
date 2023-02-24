@@ -1,6 +1,8 @@
 #ifndef MAXWELL_EQUARIONS_WORLD_CONSTANTS_H
 #define MAXWELL_EQUARIONS_WORLD_CONSTANTS_H
 
+#include "vector.h"
+
 // world dimensions
 extern const int WORLD_WIDTH;
 extern const int WORLD_HEIGHT;
@@ -27,8 +29,10 @@ extern const int TILETYPE_BACKWARD_CURRENT;
 
 // physical constants
 extern const double EPSILON_0;
+extern const double MU_0;
 
 double charge_of(int tile_type);
+Vector current_of(int tile_type);
 // double resistance_of(int tile_type);
 
 #endif // !MAXWELL_EQUARIONS_WORLD_CONSTANTS_H

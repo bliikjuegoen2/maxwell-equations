@@ -26,6 +26,7 @@ const int TILETYPE_BACKWARD_CURRENT = 9;
 
 // physical constants
 const double EPSILON_0 = 1.0;
+const double MU_0 = 1.0;
 
 double charge_of(int tile_type) {
     if (tile_type == TILETYPE_POSITIVE_CHARGE)
@@ -35,6 +36,25 @@ double charge_of(int tile_type) {
         return -1;
 
     return 0;
+}
+
+Vector current_of(int tile_type) {
+    switch (tile_type) {
+    case TILETYPE_UP_CURRENT:
+        return new_vector(0, -1, 0);
+    case TILETYPE_DOWN_CURRENT:
+        return new_vector(0, 1, 0);
+    case TILETYPE_LEFT_CURRENT:
+        return new_vector(-1, 0, 0);
+    case TILETYPE_RIGHT_CURRENT:
+        return new_vector(1, 0, 0);
+    case TILETYPE_FORWARD_CURRENT:
+        return new_vector(0, 0, -1);
+    case TILETYPE_BACKWARD_CURRENT:
+        return new_vector(0, 0, 1);
+    default:
+        return zero_vector();
+    }
 }
 
 // negative resistance = insulator
