@@ -15,6 +15,7 @@ const int TILETYPE_INSULATOR = 3;
 const double MOVABLE_PARTICLE_DENSITY = 10;
 const double MOVABLE_PARTICLE_CHARGE = 0.01;
 const double MOVABLE_PARTICLE_MASS = 1;
+const double CHARGE_TRANSFER_COEF = 1.0/2.0;
 // const double WIRE_RESISTANCE = 0.001;
 
 // physical constants

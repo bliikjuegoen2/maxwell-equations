@@ -16,6 +16,7 @@ extern const int TILETYPE_INSULATOR;
 extern const double MOVABLE_PARTICLE_DENSITY;
 extern const double MOVABLE_PARTICLE_CHARGE;
 extern const double MOVABLE_PARTICLE_MASS;
+extern const double CHARGE_TRANSFER_COEF;
 // extern const double WIRE_RESISTANCE;
 
 // physical constants

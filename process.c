@@ -130,6 +130,10 @@ void init_fields() {
     INIT_SCALAR_KERNEL(kernel_scalar_y_at, j)
     INIT_SCALAR_KERNEL(kernel_scalar_z_at, k)
 
+    LOOP_KERNEL(i, j, k,
+        *kernel_scalar_disperse_at(i, j, k) = i == 1 && j == 1 && k == 1 ? -1.0 : 1.0/26.0;
+    )
+
     // this thread applies the maxwell equations to the fields
 
     pthread_create(&process_field_thread, NULL, &process_field, NULL);
@@ -222,13 +226,16 @@ void update_charge() {
     clear_delta_vec_padded_field();
 
     LOOP_WORLD(i, j, k,
-        point = get_current_field(i,j,k);\
+        point = get_current_field(i,j,k);
 
         LOOP_KERNEL(u,v,w,
             *get_point_delta_float_padded_field(i*2+u, j*2+v, k*2+w) 
                 += point->x * *kernel_scalar_x_at(u, v, w)
                 + point->y * *kernel_scalar_y_at(u, v, w)
-                + point->z * *kernel_scalar_z_at(u, v, w);
+                + point->z * *kernel_scalar_z_at(u, v, w); 
+            
+            *get_point_delta_float_padded_field(i + u - 1, j + v - 1, k + w - 1) 
+                += *get_node_charge_field(i, j, k) * CHARGE_TRANSFER_COEF * *kernel_scalar_disperse_at(u,v,w);
         )
     )
 

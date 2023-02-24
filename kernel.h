@@ -15,5 +15,6 @@ DECL_KERNEL(kernel_vec, Vector)
 DECL_KERNEL(kernel_scalar_x, double)
 DECL_KERNEL(kernel_scalar_y, double)
 DECL_KERNEL(kernel_scalar_z, double)
+DECL_KERNEL(kernel_scalar_disperse, double)
 
 #endif // !MAXWELL_EQUATIONS_KERNEL_H
