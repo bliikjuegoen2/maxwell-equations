@@ -38,6 +38,7 @@ VEC_RIGHT = 5
 MODE_NORMAL = 0
 MODE_ELECTRIC_FIELD = 1
 MODE_MAGNETIC_FIELD = 2
+MODE_INVENTORY = 3
 # MODE_CURRENT = 2
 # MODE_CHARGE = 3
 
@@ -66,7 +67,7 @@ ITEMBAR_KEYS = [
 
 KEYS_TO_INDEX = {key:i for i,key in enumerate(ITEMBAR_KEYS)}
 
-ITEMBAR = [
+TILETYPES = [
     fields.TILETYPE_POSITIVE_CHARGE
     , fields.TILETYPE_NEGATIVE_CHARGE
     , fields.TILETYPE_INSULATOR
@@ -78,6 +79,8 @@ ITEMBAR = [
     , fields.TILETYPE_BACKWARD_CURRENT
     , fields.TILETYPE_WIRE
     ]
+
+ITEMBAR = TILETYPES[:10]
 
 # Scientific Constants
 epsilon0 = 1
@@ -125,6 +128,11 @@ class Game:
                         self.current_layer += 1
     
     def process(self) -> None:
+
+        if self.mode == MODE_INVENTORY:
+            self.process_inventory()
+            return
+
         key_pressed = pg.key.get_pressed()
 
         player_direction = np.zeros(2)
@@ -148,6 +156,8 @@ class Game:
             self.mode = MODE_ELECTRIC_FIELD
         if key_pressed[pg.K_b]:
             self.mode = MODE_MAGNETIC_FIELD
+        if key_pressed[pg.K_e]:
+            self.mode = MODE_INVENTORY
         # if key_pressed[pg.K_i]:
         #     self.mode = MODE_CURRENT
         # if key_pressed[pg.K_q]:
@@ -236,6 +246,12 @@ class Game:
                         tile = 8
                     self.draw_tile(self.scalar_set, np.array([i*TILE_SIZE,j*TILE_SIZE]), tile, 9)
                     continue
+    
+    def process_inventory(self):
+        key_pressed = pg.key.get_pressed()
+
+        if key_pressed[pg.K_ESCAPE]:
+            self.mode = MODE_NORMAL
     
     def draw_physical_tile(self, position: NDArray, tile_type: int):
         self.draw_tile(self.physical_set, position, tile_type, 64)
