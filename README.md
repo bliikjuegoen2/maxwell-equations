@@ -22,6 +22,12 @@ The project can be run with:
 
 | Key | Control |
 |-|-|
+|w|move up|
+|a|move left|
+|s|move down|
+|d|move right|
+|*shift*|move to a lower layer|
+|*space*|move to a higher layler|
 |*escape*| reset view |
 |e| view electric field |
 |b| view magnetic field |
