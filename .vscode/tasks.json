@@ -7,6 +7,11 @@
             "label": "build-swig",
             "type": "shell",
             "command": "${workspaceFolder}/.vscode/build-swig.sh"
+        },
+        {
+            "label": "init-ungit",
+            "type":"process",
+            "command": "ungit"
         }
     ]
 }
