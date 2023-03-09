@@ -32,6 +32,8 @@ VEC_BACKWARD = 3
 VEC_LEFT = 4
 VEC_RIGHT = 5
 
+# UI stuff
+
 # Visual Modes
 MODE_NORMAL = 0
 MODE_ELECTRIC_FIELD = 1
@@ -48,6 +50,34 @@ mode_to_vec_field = {
 mode_to_scalar_field = {
     # MODE_CHARGE: fields.get_node_charge_field
 }
+    
+ITEMBAR_KEYS = [
+    pg.K_1
+    , pg.K_2
+    , pg.K_3
+    , pg.K_4
+    , pg.K_5
+    , pg.K_6
+    , pg.K_7
+    , pg.K_8
+    , pg.K_9
+    , pg.K_0
+    ]
+
+KEYS_TO_INDEX = {key:i for i,key in enumerate(ITEMBAR_KEYS)}
+
+ITEMBAR = [
+    fields.TILETYPE_POSITIVE_CHARGE
+    , fields.TILETYPE_NEGATIVE_CHARGE
+    , fields.TILETYPE_INSULATOR
+    , fields.TILETYPE_UP_CURRENT
+    , fields.TILETYPE_DOWN_CURRENT
+    , fields.TILETYPE_LEFT_CURRENT
+    , fields.TILETYPE_RIGHT_CURRENT
+    , fields.TILETYPE_FORWARD_CURRENT
+    , fields.TILETYPE_BACKWARD_CURRENT
+    , fields.TILETYPE_WIRE
+    ]
 
 # Scientific Constants
 epsilon0 = 1
@@ -107,26 +137,11 @@ class Game:
             player_direction += LEFT
         if key_pressed[pg.K_d]:
             player_direction += RIGHT
-        if key_pressed[pg.K_0]:
-            self.current_tile_type = fields.TILETYPE_WIRE
-        if key_pressed[pg.K_1]:
-            self.current_tile_type = fields.TILETYPE_POSITIVE_CHARGE
-        if key_pressed[pg.K_2]:
-            self.current_tile_type = fields.TILETYPE_NEGATIVE_CHARGE
-        if key_pressed[pg.K_3]:
-            self.current_tile_type = fields.TILETYPE_INSULATOR
-        if key_pressed[pg.K_4]:
-            self.current_tile_type = fields.TILETYPE_UP_CURRENT
-        if key_pressed[pg.K_5]:
-            self.current_tile_type = fields.TILETYPE_DOWN_CURRENT
-        if key_pressed[pg.K_6]:
-            self.current_tile_type = fields.TILETYPE_LEFT_CURRENT
-        if key_pressed[pg.K_7]:
-            self.current_tile_type = fields.TILETYPE_RIGHT_CURRENT
-        if key_pressed[pg.K_8]:
-            self.current_tile_type = fields.TILETYPE_FORWARD_CURRENT
-        if key_pressed[pg.K_9]:
-            self.current_tile_type = fields.TILETYPE_BACKWARD_CURRENT
+        
+        for key in ITEMBAR_KEYS:
+            if key_pressed[key]:
+                self.current_tile_type = ITEMBAR[KEYS_TO_INDEX[key]]
+        
         if key_pressed[pg.K_ESCAPE]:
             self.mode = MODE_NORMAL
         if key_pressed[pg.K_e]:
