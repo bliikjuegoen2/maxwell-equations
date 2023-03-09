@@ -157,7 +157,7 @@ class Game:
             self.mode = MODE_ELECTRIC_FIELD
         if key_pressed[pg.K_b]:
             self.mode = MODE_MAGNETIC_FIELD
-        if key_pressed[pg.K_e]:
+        if key_pressed[pg.K_i]:
             self.mode = MODE_INVENTORY
         # if key_pressed[pg.K_i]:
         #     self.mode = MODE_CURRENT
