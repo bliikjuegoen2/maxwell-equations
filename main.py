@@ -16,6 +16,7 @@ SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
 SCREEN_DIMENSIONS = (SCREEN_WIDTH, SCREEN_HEIGHT)
 TILE_SIZE = 64
+ROW_SIZE = np.floor(SCREEN_WIDTH/TILE_SIZE)
 TILE_DIMENSIONS = (TILE_SIZE, TILE_SIZE)
 WORLD_DIMENSIONS = (fields.WORLD_WIDTH, fields.WORLD_HEIGHT, fields.WORLD_LENGTH)
 FPS = 60
@@ -252,6 +253,44 @@ class Game:
 
         if key_pressed[pg.K_ESCAPE]:
             self.mode = MODE_NORMAL
+        
+        for key in ITEMBAR_KEYS:
+            if key_pressed[key]:
+                ITEMBAR[KEYS_TO_INDEX[key]] = self.current_tile_type
+        
+        mouse_pressed = pg.mouse.get_pressed()
+        (mouse_pos_x, mouse_pos_y) = pg.mouse.get_pos()
+
+        if mouse_pressed[0]:
+            def block():
+                column = np.floor(mouse_pos_x/TILE_SIZE)
+                row = np.floor(mouse_pos_y/TILE_SIZE)
+
+                if row >= ROW_SIZE:
+                    return
+                
+                tiletype_index = int(row * 64 + column)
+
+                if tiletype_index >= len(TILETYPES):
+                    return
+
+                tiletype = TILETYPES[tiletype_index]
+                
+                self.current_tile_type = tiletype
+            
+            block()
+            
+        
+        # need to save the player position
+        # drawing the inventory messes it up
+        player_position = self.player.position
+        self.player.position = np.zeros(2)
+
+        for i,tiletype in enumerate(TILETYPES):
+            row = np.floor(i/ROW_SIZE)
+            column = i % ROW_SIZE
+            self.draw_physical_tile(np.array([column*TILE_SIZE,row*TILE_SIZE]), tiletype)
+        self.player.position = player_position
     
     def draw_physical_tile(self, position: NDArray, tile_type: int):
         self.draw_tile(self.physical_set, position, tile_type, 64)
